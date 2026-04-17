@@ -6,9 +6,15 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "utenti")
 public class Utente {
@@ -30,97 +36,45 @@ public class Utente {
     private String passwordHash;
 
     @Column(nullable = false, length = 20)
-    private String ruolo;
+    private String ruolo = "giovane";
 
-    @Column(nullable = false)
-    private boolean attivo = true;
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
 
-    @Column(nullable = false)
-    private boolean verificato = false;
+    @Column(length = 20)
+    private String telefono;
 
-    @Column(length = 100)
-    private String citta = "Lecco";
+    @Column(columnDefinition = "TEXT")
+    private String bio;
 
     @Column(name = "data_nascita")
     private LocalDate dataNascita;
 
-    public Long getId() {
-        return id;
-    }
+    @Column(length = 100)
+    private String citta = "Lecco";
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(length = 5)
+    private String cap;
 
-    public String getNome() {
-        return nome;
-    }
+    @Column(length = 200)
+    private String indirizzo;
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
+    private BigDecimal latitudine;
 
-    public String getCognome() {
-        return cognome;
-    }
+    private BigDecimal longitudine;
 
-    public void setCognome(String cognome) {
-        this.cognome = cognome;
-    }
+    @Column(nullable = false)
+    private boolean verificato;
 
-    public String getEmail() {
-        return email;
-    }
+    @Column(nullable = false)
+    private boolean attivo = true;
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    @Column(name = "ultimo_accesso")
+    private LocalDateTime ultimoAccesso;
 
-    public String getPasswordHash() {
-        return passwordHash;
-    }
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public String getRuolo() {
-        return ruolo;
-    }
-
-    public void setRuolo(String ruolo) {
-        this.ruolo = ruolo;
-    }
-
-    public boolean isAttivo() {
-        return attivo;
-    }
-
-    public void setAttivo(boolean attivo) {
-        this.attivo = attivo;
-    }
-
-    public boolean isVerificato() {
-        return verificato;
-    }
-
-    public void setVerificato(boolean verificato) {
-        this.verificato = verificato;
-    }
-
-    public String getCitta() {
-        return citta;
-    }
-
-    public void setCitta(String citta) {
-        this.citta = citta;
-    }
-
-    public LocalDate getDataNascita() {
-        return dataNascita;
-    }
-
-    public void setDataNascita(LocalDate dataNascita) {
-        this.dataNascita = dataNascita;
-    }
+    @Column(name = "updated_at", insertable = false, updatable = false)
+    private LocalDateTime updatedAt;
 }

@@ -6,7 +6,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
 @Entity
 @Table(name = "profili_giovani")
 public class ProfiloGiovane {
@@ -18,8 +25,19 @@ public class ProfiloGiovane {
     @Column(name = "utente_id", nullable = false, unique = true)
     private Long utenteId;
 
+    private Integer anni;
+
+    @Column(name = "scuola_o_universita", length = 150)
+    private String scuolaOUniversita;
+
+    @Column(name = "anno_studio", length = 60)
+    private String annoStudio;
+
     @Column(name = "raggio_km")
     private Integer raggioKm = 5;
+
+    @Column(name = "mezzo_spostamento")
+    private String mezzoSpostamento;
 
     @Column(nullable = false)
     private boolean disponibile = true;
@@ -27,43 +45,15 @@ public class ProfiloGiovane {
     @Column(name = "ore_settimana_max")
     private Integer oreSettimanaMax = 10;
 
-    public Long getId() {
-        return id;
-    }
+    @Column(name = "compenso_min_ora")
+    private BigDecimal compensoMinOra;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(name = "punteggio_medio")
+    private BigDecimal punteggioMedio;
 
-    public Long getUtenteId() {
-        return utenteId;
-    }
+    @Column(name = "n_lavori_completati")
+    private Integer nLavoriCompletati;
 
-    public void setUtenteId(Long utenteId) {
-        this.utenteId = utenteId;
-    }
-
-    public Integer getRaggioKm() {
-        return raggioKm;
-    }
-
-    public void setRaggioKm(Integer raggioKm) {
-        this.raggioKm = raggioKm;
-    }
-
-    public boolean isDisponibile() {
-        return disponibile;
-    }
-
-    public void setDisponibile(boolean disponibile) {
-        this.disponibile = disponibile;
-    }
-
-    public Integer getOreSettimanaMax() {
-        return oreSettimanaMax;
-    }
-
-    public void setOreSettimanaMax(Integer oreSettimanaMax) {
-        this.oreSettimanaMax = oreSettimanaMax;
-    }
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
 }

@@ -6,7 +6,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
 @Entity
 @Table(name = "profili_richiedenti")
 public class ProfiloRichiedente {
@@ -18,30 +25,21 @@ public class ProfiloRichiedente {
     @Column(name = "utente_id", nullable = false, unique = true)
     private Long utenteId;
 
-    @Column(nullable = false, length = 40)
+    @Column(length = 40)
     private String tipo = "privato";
 
-    public Long getId() {
-        return id;
-    }
+    @Column(name = "nome_org", length = 150)
+    private String nomeOrg;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(name = "sito_web", length = 300)
+    private String sitoWeb;
 
-    public Long getUtenteId() {
-        return utenteId;
-    }
+    @Column(name = "punteggio_medio")
+    private BigDecimal punteggioMedio;
 
-    public void setUtenteId(Long utenteId) {
-        this.utenteId = utenteId;
-    }
+    @Column(name = "n_annunci_totali")
+    private Integer nAnnunciTotali;
 
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
 }

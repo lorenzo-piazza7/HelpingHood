@@ -18,6 +18,10 @@ import java.util.Locale;
 @ConditionalOnProperty(name = "app.auth.enabled", havingValue = "true", matchIfMissing = true)
 public class RegistrationService {
 
+    private static final String ROLE_GIOVANE = "giovane";
+    private static final String ROLE_RICHIEDENTE = "richiedente";
+    private static final String TIPO_RICHIEDENTE_DEFAULT = "privato";
+
     private final UtenteRepository utenteRepository;
     private final ProfiloGiovaneRepository profiloGiovaneRepository;
     private final ProfiloRichiedenteRepository profiloRichiedenteRepository;
@@ -58,14 +62,14 @@ public class RegistrationService {
 
         Utente saved = utenteRepository.save(utente);
 
-        if ("giovane".equals(role)) {
+        if (ROLE_GIOVANE.equals(role)) {
             ProfiloGiovane profiloGiovane = new ProfiloGiovane();
             profiloGiovane.setUtenteId(saved.getId());
             profiloGiovaneRepository.save(profiloGiovane);
         } else {
             ProfiloRichiedente profiloRichiedente = new ProfiloRichiedente();
             profiloRichiedente.setUtenteId(saved.getId());
-            profiloRichiedente.setTipo("privato");
+            profiloRichiedente.setTipo(TIPO_RICHIEDENTE_DEFAULT);
             profiloRichiedenteRepository.save(profiloRichiedente);
         }
 
@@ -74,13 +78,13 @@ public class RegistrationService {
 
     private String normalizeRole(String rawRole) {
         if (rawRole == null) {
-            return "giovane";
+            return ROLE_GIOVANE;
         }
         String role = rawRole.trim().toLowerCase(Locale.ROOT);
-        if ("richiedente".equals(role)) {
-            return "richiedente";
+        if (ROLE_RICHIEDENTE.equals(role)) {
+            return ROLE_RICHIEDENTE;
         }
-        return "giovane";
+        return ROLE_GIOVANE;
     }
 
     public record RegistrationRequest(String nome, String cognome, String email, String password, String ruolo) {
