@@ -4,6 +4,8 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,6 +16,8 @@ import java.util.function.Supplier;
 
 @Service
 public class DemoDataService {
+
+    private static final Logger log = LoggerFactory.getLogger(DemoDataService.class);
 
     private final long demoGiovaneId;
     private final long demoRichiedenteId;
@@ -369,6 +373,7 @@ public class DemoDataService {
         try {
             return operation.get();
         } catch (RuntimeException ex) {
+            log.debug("Fallback demo data value used due to runtime exception", ex);
             return fallback;
         }
     }
