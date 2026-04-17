@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Registrazione')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('register')}"></div>
+<main class="container narrow">
+    <section class="card">
+        <h1>Crea il tuo account</h1>
+        <p>Registrati come giovane o richiedente per usare HelpingHood.</p>
+
+        <p class="error-msg" th:if="${errorMessage}" th:text="${errorMessage}"></p>
+
+        <form class="form-grid" method="post" th:action="@{/register}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <label>Nome
+                <input type="text" name="nome" th:value="${nome}" required>
+            </label>
+            <label>Cognome
+                <input type="text" name="cognome" th:value="${cognome}" required>
+            </label>
+            <label>Email
+                <input type="email" name="email" th:value="${email}" required>
+            </label>
+            <label>Password
+                <input type="password" name="password" required minlength="8">
+            </label>
+            <label class="full">Ruolo
+                <select name="ruolo" required>
+                    <option value="giovane" th:selected="${ruolo == null || ruolo == 'giovane'}">Giovane</option>
+                    <option value="richiedente" th:selected="${ruolo == 'richiedente'}">Richiedente</option>
+                </select>
+            </label>
+
+            <button type="submit" class="btn full">Registrati</button>
+        </form>
+
+        <p class="mt-12">Hai già un account? <a class="link" th:href="@{/auth}">Torna al login</a>.</p>
+    </section>
+</main>
+</body>
+</html>

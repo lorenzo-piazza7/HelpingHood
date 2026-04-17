@@ -12,14 +12,20 @@
 </head>
 <body>
 <nav th:fragment="navbar(active)" class="top-nav">
-    <a class="logo" th:href="@{/}">HelpingHood</a>
-    <div class="nav-links">
+    <a class="logo" th:href="@{/home}">HelpingHood</a>
+    <div class="nav-links" th:if="${active != 'auth' && active != 'register'}">
         <a th:classappend="${active == 'lavori'} ? 'active'" th:href="@{/lavori}">Lavori</a>
         <a th:classappend="${active == 'giovane'} ? 'active'" th:href="@{/dashboard/giovane}">Dashboard Giovane</a>
         <a th:classappend="${active == 'richiedente'} ? 'active'" th:href="@{/dashboard/richiedente}">Dashboard Richiedente</a>
         <a th:classappend="${active == 'chat'} ? 'active'" th:href="@{/chat}">Chat</a>
     </div>
-    <a class="btn btn-sm" th:href="@{/auth}">Accedi</a>
+
+    <a class="btn btn-sm" th:if="${active == 'auth' || active == 'register'}" th:href="@{/auth}">Accedi</a>
+
+    <form th:if="${active != 'auth' && active != 'register'}" method="post" th:action="@{/logout}" class="inline-form">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button type="submit" class="btn btn-sm btn-light">Logout</button>
+    </form>
 </nav>
 </body>
 </html>

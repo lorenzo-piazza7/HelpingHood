@@ -15,16 +15,11 @@ public class ViewController {
         this.demoDataService = demoDataService;
     }
 
-    @GetMapping("/")
+    @GetMapping("/home")
     public String landing(Model model) {
         model.addAttribute("categories", demoDataService.categories());
         model.addAttribute("nearbyJobs", demoDataService.jobs().stream().limit(3).toList());
         return "pages/landing";
-    }
-
-    @GetMapping("/auth")
-    public String auth() {
-        return "pages/auth";
     }
 
     @GetMapping("/dashboard/giovane")

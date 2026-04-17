@@ -1,24 +1,29 @@
 <!DOCTYPE html>
 <html lang="it" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Login e registrazione')}"></head>
+<head th:replace="~{fragments/layout :: head('Login')}"></head>
 <body>
 <div th:replace="~{fragments/layout :: navbar('auth')}"></div>
 <main class="container narrow">
     <section class="card">
-        <h1>Accedi o crea il tuo profilo</h1>
-        <p>Seleziona il tuo ruolo per iniziare in pochi secondi.</p>
-        <form class="form-grid">
-            <label>Nome<input type="text" placeholder="Es. Matteo"></label>
-            <label>Email<input type="email" placeholder="nome@email.it"></label>
-            <label>Password<input type="password" placeholder="********"></label>
-            <label>Ruolo
-                <select>
-                    <option>Giovane</option>
-                    <option>Richiedente</option>
-                </select>
+        <h1>Accedi a HelpingHood</h1>
+        <p>Inserisci le tue credenziali per entrare nella piattaforma.</p>
+
+        <p class="success-msg" th:if="${successMessage}" th:text="${successMessage}"></p>
+        <p class="error-msg" th:if="${param.error}">Credenziali non valide.</p>
+        <p class="success-msg" th:if="${param.logout}">Logout effettuato con successo.</p>
+
+        <form class="form-grid" method="post" th:action="@{/auth}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <label>Email
+                <input type="email" name="username" placeholder="nome@email.it" required>
             </label>
-            <button type="button" class="btn">Entra in HelpingHood</button>
+            <label>Password
+                <input type="password" name="password" placeholder="********" required>
+            </label>
+            <button type="submit" class="btn full">Login</button>
         </form>
+
+        <p class="mt-12">Non hai un account? <a class="link" th:href="@{/register}">Registrati qui</a>.</p>
     </section>
 </main>
 </body>

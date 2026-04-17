@@ -15,9 +15,24 @@ public class SecurityoConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
-                .formLogin(form -> form.disable())
-                .httpBasic(basic -> basic.disable());
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/", "/auth", "/register", "/css/**", "/js/**", "/error").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .loginPage("/auth")
+                        .loginProcessingUrl("/auth")
+                        .defaultSuccessUrl("/home", true)
+                        .failureUrl("/auth?error=true")
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/auth?logout=true")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
+                );
         return http.build();
     }
 
