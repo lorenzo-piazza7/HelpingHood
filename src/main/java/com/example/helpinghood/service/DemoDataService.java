@@ -1,6 +1,7 @@
 package com.example.helpinghood.service;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 
@@ -14,15 +15,23 @@ import java.util.function.Supplier;
 @Service
 public class DemoDataService {
 
-    private static final long DEMO_GIOVANE_ID = 2L;
-    private static final long DEMO_RICHIEDENTE_ID = 5L;
-    private static final double BASE_LAT = 45.8565;
-    private static final double BASE_LON = 9.3967;
+    private final long demoGiovaneId;
+    private final long demoRichiedenteId;
+    private final double baseLat;
+    private final double baseLon;
 
     private final JdbcClient jdbcClient;
 
-    public DemoDataService(ObjectProvider<JdbcClient> jdbcClientProvider) {
+    public DemoDataService(ObjectProvider<JdbcClient> jdbcClientProvider,
+                           @Value("${app.demo.giovane-id:2}") long demoGiovaneId,
+                           @Value("${app.demo.richiedente-id:5}") long demoRichiedenteId,
+                           @Value("${app.demo.base-lat:45.8565}") double baseLat,
+                           @Value("${app.demo.base-lon:9.3967}") double baseLon) {
         this.jdbcClient = jdbcClientProvider.getIfAvailable();
+        this.demoGiovaneId = demoGiovaneId;
+        this.demoRichiedenteId = demoRichiedenteId;
+        this.baseLat = baseLat;
+        this.baseLon = baseLon;
     }
 
     public List<Category> categories() {
@@ -206,8 +215,8 @@ public class DemoDataService {
                         )
                         ORDER BY m.inviato_at ASC
                         """)
-                .param(DEMO_GIOVANE_ID)
-                .param(DEMO_GIOVANE_ID)
+                .param(demoGiovaneId)
+                .param(demoGiovaneId)
                 .query((rs, rowNum) -> new ChatMessage(
                         rs.getString("mittente"),
                         rs.getString("testo"),
@@ -227,7 +236,7 @@ public class DemoDataService {
                 .single(), 0);
 
         Integer applications = safe(() -> jdbcClient.sql("SELECT COUNT(*) FROM candidature WHERE giovane_utente_id = ?")
-                .param(DEMO_GIOVANE_ID)
+                .param(demoGiovaneId)
                 .query(Integer.class)
                 .single(), 0);
 
@@ -236,13 +245,13 @@ public class DemoDataService {
                         FROM conversazioni
                         WHERE partecipante_1 = ? OR partecipante_2 = ?
                         """)
-                .param(DEMO_GIOVANE_ID)
-                .param(DEMO_GIOVANE_ID)
+                .param(demoGiovaneId)
+                .param(demoGiovaneId)
                 .query(Integer.class)
                 .single(), 0);
 
         Double reputation = safe(() -> jdbcClient.sql("SELECT punteggio_medio FROM profili_giovani WHERE utente_id = ?")
-                .param(DEMO_GIOVANE_ID)
+                .param(demoGiovaneId)
                 .query(Double.class)
                 .optional()
                 .orElse(0.0), 0.0);
@@ -261,7 +270,7 @@ public class DemoDataService {
                         FROM annunci
                         WHERE richiedente_id = ? AND stato = 'attivo' AND visibile = 1
                         """)
-                .param(DEMO_RICHIEDENTE_ID)
+                .param(demoRichiedenteId)
                 .query(Integer.class)
                 .single(), 0);
 
@@ -271,7 +280,7 @@ public class DemoDataService {
                         JOIN annunci a ON a.id = c.annuncio_id
                         WHERE a.richiedente_id = ?
                         """)
-                .param(DEMO_RICHIEDENTE_ID)
+                .param(demoRichiedenteId)
                 .query(Integer.class)
                 .single(), 0);
 
@@ -280,13 +289,13 @@ public class DemoDataService {
                         FROM conversazioni
                         WHERE partecipante_1 = ? OR partecipante_2 = ?
                         """)
-                .param(DEMO_RICHIEDENTE_ID)
-                .param(DEMO_RICHIEDENTE_ID)
+                .param(demoRichiedenteId)
+                .param(demoRichiedenteId)
                 .query(Integer.class)
                 .single(), 0);
 
         Double reputation = safe(() -> jdbcClient.sql("SELECT punteggio_medio FROM profili_richiedenti WHERE utente_id = ?")
-                .param(DEMO_RICHIEDENTE_ID)
+                .param(demoRichiedenteId)
                 .query(Double.class)
                 .optional()
                 .orElse(0.0), 0.0);
@@ -337,10 +346,10 @@ public class DemoDataService {
             return 0.0;
         }
         final double earthRadius = 6371.0;
-        double dLat = Math.toRadians(lat - BASE_LAT);
-        double dLon = Math.toRadians(lon - BASE_LON);
+        double dLat = Math.toRadians(lat - baseLat);
+        double dLon = Math.toRadians(lon - baseLon);
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-                + Math.cos(Math.toRadians(BASE_LAT)) * Math.cos(Math.toRadians(lat))
+                + Math.cos(Math.toRadians(baseLat)) * Math.cos(Math.toRadians(lat))
                 * Math.sin(dLon / 2) * Math.sin(dLon / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return Math.round(earthRadius * c * 10.0) / 10.0;

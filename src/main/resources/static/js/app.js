@@ -10,15 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const applyFilters = () => {
         cards.forEach(card => {
-            const c = card.dataset.category;
-            const d = Number(card.dataset.distance);
-            const t = card.dataset.time;
-            const p = Number(card.dataset.pay);
+            const cardCategory = card.dataset.category;
+            const cardDistance = Number(card.dataset.distance);
+            const cardTime = card.dataset.time;
+            const cardPay = Number(card.dataset.pay);
 
-            const categoryOk = !category?.value || category.value === c;
-            const distanceOk = !distance?.value || d <= Number(distance.value);
-            const timeOk = !time?.value || t <= time.value;
-            const payOk = !pay?.value || p >= Number(pay.value);
+            const categoryOk = !category?.value || category.value === cardCategory;
+            const distanceOk = !distance?.value || cardDistance <= Number(distance.value);
+            const timeOk = !time?.value || cardTime <= time.value;
+            const payOk = !pay?.value || cardPay >= Number(pay.value);
 
             card.style.display = (categoryOk && distanceOk && timeOk && payOk) ? '' : 'none';
         });
