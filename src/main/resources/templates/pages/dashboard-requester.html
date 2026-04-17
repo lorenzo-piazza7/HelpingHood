@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dashboard richiedente')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('richiedente')}"></div>
+<main class="container">
+    <div class="row-between">
+        <div>
+            <h1>Dashboard richiedente</h1>
+            <p>Gestisci annunci locali e trova aiuto affidabile nel tuo quartiere.</p>
+        </div>
+        <a class="btn" th:href="@{/annunci/nuovo}">Nuovo annuncio</a>
+    </div>
+
+    <section class="stats-grid">
+        <article class="stat"><h3 th:text="${stats.nearbyJobs}"></h3><p>annunci attivi</p></article>
+        <article class="stat"><h3 th:text="${stats.applications}"></h3><p>candidature ricevute</p></article>
+        <article class="stat"><h3 th:text="${stats.activeChats}"></h3><p>chat aperte</p></article>
+        <article class="stat"><h3 th:text="${stats.reputation}"></h3><p>valutazione media</p></article>
+    </section>
+
+    <section class="grid cards-2">
+        <article class="card" th:each="job : ${jobs}">
+            <h3 th:text="${job.title}"></h3>
+            <p th:text="${job.zone}"></p>
+            <div class="row-between mt-12">
+                <span class="pill" th:text="${job.category}"></span>
+                <a class="btn btn-sm" th:href="@{'/lavori/' + ${job.id}}">Visualizza</a>
+            </div>
+        </article>
+    </section>
+</main>
+</body>
+</html>

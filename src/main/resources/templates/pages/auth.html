@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Login e registrazione')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('auth')}"></div>
+<main class="container narrow">
+    <section class="card">
+        <h1>Accedi o crea il tuo profilo</h1>
+        <p>Seleziona il tuo ruolo per iniziare in pochi secondi.</p>
+        <form class="form-grid">
+            <label>Nome<input type="text" placeholder="Es. Matteo"></label>
+            <label>Email<input type="email" placeholder="nome@email.it"></label>
+            <label>Password<input type="password" placeholder="********"></label>
+            <label>Ruolo
+                <select>
+                    <option>Giovane</option>
+                    <option>Richiedente</option>
+                </select>
+            </label>
+            <button type="button" class="btn">Entra in HelpingHood</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Elenco lavori')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('lavori')}"></div>
+<main class="container">
+    <h1>Elenco lavoretti</h1>
+    <p>Dalla tua zona, per la tua zona.</p>
+
+    <section class="card filters">
+        <label>Categoria
+            <select id="filter-category">
+                <option value="">Tutte</option>
+                <option th:each="cat : ${categories}" th:value="${cat.name}" th:text="${cat.name}"></option>
+            </select>
+        </label>
+        <label>Distanza max (km)
+            <input id="filter-distance" type="number" min="0" max="20" step="0.5" placeholder="Es. 2">
+        </label>
+        <label>Orario max
+            <input id="filter-time" type="time">
+        </label>
+        <label>Compenso min €/h
+            <input id="filter-pay" type="number" min="0" step="1" placeholder="Es. 8">
+        </label>
+        <button type="button" class="btn btn-sm" id="clear-filters">Reset filtri</button>
+    </section>
+
+    <section class="grid cards-2" id="jobs-list">
+        <article class="card job-card" th:each="job : ${jobs}"
+                 th:attr="data-category=${job.category},data-distance=${job.distanceKm},data-time=${#temporals.format(job.time, 'HH:mm')},data-pay=${job.hourlyCompensation}">
+            <div class="row-between">
+                <span class="pill" th:text="${job.category}"></span>
+                <span class="pill success" th:text="${job.distanceKm + ' km'}"></span>
+            </div>
+            <h3 th:text="${job.title}"></h3>
+            <p th:text="${job.description}"></p>
+            <p th:text="${job.zone + ' · ' + #temporals.format(job.day, 'dd/MM') + ' ' + #temporals.format(job.time, 'HH:mm')}"></p>
+            <div class="row-between mt-12">
+                <strong th:text="${job.hourlyCompensation == 0 ? 'Volontariato' : '€ ' + job.hourlyCompensation + '/h'}"></strong>
+                <a class="btn btn-sm" th:href="@{'/lavori/' + ${job.id}}">Candidati</a>
+            </div>
+        </article>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,160 @@
+:root {
+    --primary: #2e7d32;
+    --primary-2: #43a047;
+    --bg: #f5faf5;
+    --card: #ffffff;
+    --text: #19361e;
+    --muted: #5a6e5f;
+    --border: #d7e8d8;
+    --danger: #d84315;
+}
+
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: Inter, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.container { width: min(1080px, 92%); margin: 1.25rem auto 2rem; }
+.narrow { width: min(760px, 92%); }
+
+.top-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .85rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(245, 250, 245, .95);
+    backdrop-filter: blur(10px);
+}
+
+.logo { font-weight: 800; color: var(--primary); text-decoration: none; }
+.nav-links { display: none; gap: .5rem; }
+.nav-links a { color: var(--muted); text-decoration: none; padding: .4rem .65rem; border-radius: 999px; }
+.nav-links a.active, .nav-links a:hover { background: #e5f4e6; color: var(--primary); }
+
+h1, h2, h3 { margin: .35rem 0 .6rem; line-height: 1.2; }
+p { margin: .35rem 0 .9rem; color: var(--muted); }
+
+.hero {
+    background: linear-gradient(140deg, #e9f7ea, #f7fbf7);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 1.2rem;
+    margin-bottom: 1rem;
+}
+.hero-actions { display: flex; flex-wrap: wrap; gap: .65rem; }
+
+.grid { display: grid; gap: .85rem; }
+.cards-2 { grid-template-columns: 1fr; }
+.cards-3 { grid-template-columns: 1fr; }
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 6px 18px rgba(29, 80, 40, 0.06);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: .75rem;
+    margin: .9rem 0;
+}
+.stat {
+    background: #eaf7eb;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: .9rem;
+}
+
+.form-grid { display: grid; gap: .7rem; }
+.form-grid label { display: grid; gap: .35rem; font-weight: 600; color: var(--text); }
+input, select, textarea {
+    width: 100%;
+    border: 1px solid #c7dbc8;
+    border-radius: 10px;
+    padding: .65rem .75rem;
+    font: inherit;
+    background: #fff;
+}
+
+.filters { display: grid; gap: .65rem; }
+.job-card { transition: transform .2s ease; }
+.job-card:hover { transform: translateY(-2px); }
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--primary);
+    color: #fff;
+    text-decoration: none;
+    padding: .65rem 1rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.btn-sm { padding: .48rem .8rem; font-size: .9rem; }
+.btn-light { background: #e5f4e6; color: var(--primary); }
+
+.badge, .pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: .3rem .65rem;
+    background: #e7f5e8;
+    color: var(--primary);
+    font-size: .85rem;
+    font-weight: 600;
+}
+.pill.success { background: #def1e1; }
+.pill.danger { background: #ffe8de; color: var(--danger); }
+
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.row-between { display: flex; align-items: center; justify-content: space-between; gap: .6rem; }
+.row-gap { display: flex; flex-wrap: wrap; gap: .6rem; }
+.skills { display: flex; flex-wrap: wrap; gap: .45rem; }
+.detail-list { margin: 0; padding-left: 1rem; }
+.mt-12 { margin-top: .75rem; }
+.link { color: var(--primary); text-decoration: none; font-weight: 600; }
+
+.chat-box {
+    display: grid;
+    gap: .55rem;
+    max-height: 360px;
+    overflow-y: auto;
+    background: #f8fcf8;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: .7rem;
+}
+.message {
+    max-width: 85%;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: .55rem .65rem;
+}
+.message.mine { margin-left: auto; background: #e7f5e8; }
+.chat-input { display: flex; gap: .55rem; margin-top: .8rem; }
+
+@media (min-width: 820px) {
+    .nav-links { display: flex; }
+    .cards-2 { grid-template-columns: repeat(2, 1fr); }
+    .cards-3 { grid-template-columns: repeat(3, 1fr); }
+    .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    .filters { grid-template-columns: repeat(5, 1fr); align-items: end; }
+    .form-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-grid .full { grid-column: 1 / -1; }
+}

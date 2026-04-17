@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Profilo giovane')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('giovane')}"></div>
+<main class="container">
+    <section class="card">
+        <h1 th:text="${profile.name}"></h1>
+        <p th:text="${profile.age + ' anni · ' + profile.zone}"></p>
+        <p th:text="${profile.bio}"></p>
+        <div class="skills">
+            <span class="pill" th:each="skill : ${profile.skills}" th:text="${skill}"></span>
+        </div>
+        <ul class="detail-list mt-12">
+            <li><strong>Disponibilità:</strong> <span th:text="${profile.availability}"></span></li>
+            <li><strong>Valutazione:</strong> <span th:text="${profile.rating + ' / 5'}"></span></li>
+            <li><strong>Lavori completati:</strong> <span th:text="${profile.jobsDone}"></span></li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Recensioni ricevute</h2>
+        <div class="grid cards-2">
+            <article class="card" th:each="review : ${reviews}">
+                <p><strong th:text="${review.author}"></strong></p>
+                <p th:text="${'⭐'.repeat(review.rating)}"></p>
+                <p th:text="${review.text}"></p>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>

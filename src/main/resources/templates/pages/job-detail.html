@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dettaglio lavoretto')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('lavori')}"></div>
+<main class="container">
+    <section class="card">
+        <div class="row-between">
+            <span class="pill" th:text="${job.category}"></span>
+            <span th:if="${job.urgent}" class="pill danger">Urgente</span>
+        </div>
+        <h1 th:text="${job.title}"></h1>
+        <p th:text="${job.description}"></p>
+        <ul class="detail-list">
+            <li><strong>Zona:</strong> <span th:text="${job.zone}"></span></li>
+            <li><strong>Distanza:</strong> <span th:text="${job.distanceKm + ' km'}"></span></li>
+            <li><strong>Giorno e orario:</strong> <span th:text="${#temporals.format(job.day, 'dd/MM/yyyy') + ' · ' + #temporals.format(job.time, 'HH:mm')}"></span></li>
+            <li><strong>Durata:</strong> <span th:text="${job.durationHours + ' ore'}"></span></li>
+            <li><strong>Compenso:</strong> <span th:text="${job.hourlyCompensation == 0 ? 'Volontariato' : '€ ' + job.hourlyCompensation + '/h'}"></span></li>
+            <li><strong>Richiedente:</strong> <span th:text="${job.requesterName}"></span></li>
+        </ul>
+        <div class="row-gap">
+            <button type="button" class="btn">Candidatura rapida</button>
+            <a class="btn btn-light" th:href="@{/chat}">Apri chat</a>
+        </div>
+    </section>
+
+    <section>
+        <h2>Affidabilità e recensioni recenti</h2>
+        <div class="grid cards-2">
+            <article class="card" th:each="review : ${reviews}">
+                <p><strong th:text="${review.author}"></strong> → <span th:text="${review.target}"></span></p>
+                <p th:text="${'⭐'.repeat(review.rating)}"></p>
+                <p th:text="${review.text}"></p>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Chat')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('chat')}"></div>
+<main class="container narrow">
+    <section class="card">
+        <h1>Chat (mockup)</h1>
+        <p>Conversazione rapida per confermare il lavoretto.</p>
+        <div class="chat-box">
+            <div th:each="m : ${messages}" th:class="${m.mine} ? 'message mine' : 'message'">
+                <strong th:text="${m.sender}"></strong>
+                <p th:text="${m.text}"></p>
+                <small th:text="${m.time}"></small>
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" placeholder="Scrivi un messaggio...">
+            <button type="button" class="btn btn-sm">Invia</button>
+        </div>
+    </section>
+</main>
+</body>
+</html>

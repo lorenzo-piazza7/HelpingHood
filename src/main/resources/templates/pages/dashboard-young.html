@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dashboard giovane')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('giovane')}"></div>
+<main class="container">
+    <h1>Ciao <span th:text="${profile.name}"></span> 👋</h1>
+    <p>Piccoli lavori vicino a te, in modo semplice e concreto.</p>
+
+    <section class="stats-grid">
+        <article class="stat"><h3 th:text="${stats.nearbyJobs}"></h3><p>lavoretti vicini</p></article>
+        <article class="stat"><h3 th:text="${stats.applications}"></h3><p>candidature inviate</p></article>
+        <article class="stat"><h3 th:text="${stats.activeChats}"></h3><p>chat attive</p></article>
+        <article class="stat"><h3 th:text="${stats.reputation}"></h3><p>reputazione</p></article>
+    </section>
+
+    <section>
+        <div class="row-between">
+            <h2>Proposte per te</h2>
+            <a class="btn btn-sm" th:href="@{/lavori}">Apri elenco lavori</a>
+        </div>
+        <div class="grid cards-2">
+            <article class="card" th:each="job : ${jobs}">
+                <div class="row-between">
+                    <span class="pill" th:text="${job.category}"></span>
+                    <span th:if="${job.urgent}" class="pill danger">Urgente</span>
+                </div>
+                <h3 th:text="${job.title}"></h3>
+                <p th:text="${job.zone + ' · ' + job.distanceKm + ' km'}"></p>
+                <a class="btn btn-sm" th:href="@{'/lavori/' + ${job.id}}">Candidatura rapida</a>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>
