@@ -23,7 +23,7 @@
         <div class="grid cards-2">
             <article class="card" th:each="review : ${reviews}">
                 <p><strong th:text="${review.author}"></strong></p>
-                <p th:text="${'⭐'.repeat(review.rating)}"></p>
+                <p th:text="${#strings.repeat('⭐', review.rating)}"></p>
                 <p th:text="${review.text}"></p>
             </article>
         </div>
