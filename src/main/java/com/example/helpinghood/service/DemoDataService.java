@@ -1,76 +1,367 @@
 package com.example.helpinghood.service;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Service
 public class DemoDataService {
 
+    private static final long DEMO_GIOVANE_ID = 2L;
+    private static final long DEMO_RICHIEDENTE_ID = 5L;
+    private static final double BASE_LAT = 45.8565;
+    private static final double BASE_LON = 9.3967;
+
+    private final JdbcClient jdbcClient;
+
+    public DemoDataService(ObjectProvider<JdbcClient> jdbcClientProvider) {
+        this.jdbcClient = jdbcClientProvider.getIfAvailable();
+    }
+
     public List<Category> categories() {
-        return List.of(
-                new Category(1, "Ripetizioni", "📚", "#2E7D32"),
-                new Category(2, "Babysitting", "🧸", "#388E3C"),
-                new Category(3, "Spesa e commissioni", "🛒", "#43A047"),
-                new Category(4, "Aiuto tech", "📱", "#4CAF50"),
-                new Category(8, "Supporto eventi", "🎪", "#C8E6C9")
-        );
+        if (jdbcClient == null) {
+            return List.of();
+        }
+
+
+        return safe(() -> jdbcClient.sql("""
+                        SELECT id, nome, icona, colore_hex
+                        FROM categorie
+                        ORDER BY nome
+                        """)
+                .query((rs, rowNum) -> new Category(
+                        rs.getLong("id"),
+                        rs.getString("nome"),
+                        rs.getString("icona"),
+                        rs.getString("colore_hex")
+                )).list(), List.of());
     }
 
     public List<Job> jobs() {
-        return List.of(
-                new Job(1, "Cerco babysitter per martedì pomeriggio", "Ho due nipotini di 4 e 6 anni, cerco supporto per gioco e merenda.", "Babysitting", "Lecco - Pescarenico", 1.2, 3.0, LocalDate.of(2026, 4, 21), LocalTime.of(15, 0), new BigDecimal("8.00"), true, "Signora Verdi"),
-                new Job(2, "Ripetizioni di matematica (terza media)", "Cerco uno studente paziente per geometria e frazioni, 2 pomeriggi a settimana.", "Ripetizioni", "Lecco - Centro", 0.8, 1.5, LocalDate.of(2026, 4, 22), LocalTime.of(16, 0), new BigDecimal("10.00"), false, "Famiglia Ferrari"),
-                new Job(3, "Spesa al supermercato per venerdì", "Serve aiuto per fare la spesa con lista già pronta.", "Spesa e commissioni", "Lecco - Stazione", 1.6, 2.0, LocalDate.of(2026, 4, 19), LocalTime.of(10, 0), new BigDecimal("7.00"), true, "Signora Verdi"),
-                new Job(4, "Aiuto smartphone per anziana", "Configurare Android e spiegare WhatsApp in modo semplice.", "Aiuto tech", "Lecco - Caleotto", 2.4, 2.0, LocalDate.of(2026, 4, 20), LocalTime.of(15, 30), new BigDecimal("20.00"), false, "Luca Ferrari"),
-                new Job(5, "Supporto evento Lecco in Fiore", "Accoglienza visitatori e supporto logistico durante la manifestazione.", "Supporto eventi", "Lecco - Piazza Manzoni", 1.0, 6.0, LocalDate.of(2026, 4, 25), LocalTime.of(9, 0), new BigDecimal("0.00"), true, "Comune di Lecco")
-        );
+        if (jdbcClient == null) {
+            return List.of();
+        }
+
+
+        return safe(() -> jdbcClient.sql("""
+                        SELECT id, titolo, descrizione, categoria_nome, citta, luogo_note,
+                               latitudine, longitudine, compenso_importo, data_inizio,
+                               ora_inizio, durata_ore, urgente, richiedente_nome
+                        FROM v_annunci_attivi
+                        ORDER BY urgente DESC, data_inizio ASC, ora_inizio ASC
+                        """)
+                .query((rs, rowNum) -> {
+                    Double lat = (Double) rs.getObject("latitudine");
+                    Double lon = (Double) rs.getObject("longitudine");
+                    return new Job(
+                            rs.getLong("id"),
+                            rs.getString("titolo"),
+                            rs.getString("descrizione"),
+                            rs.getString("categoria_nome"),
+                            zone(rs.getString("citta"), rs.getString("luogo_note")),
+                            distanceKm(lat, lon),
+                            rs.getBigDecimal("durata_ore") != null ? rs.getBigDecimal("durata_ore").doubleValue() : 0,
+                            rs.getObject("data_inizio", LocalDate.class),
+                            rs.getObject("ora_inizio", LocalTime.class),
+                            rs.getBigDecimal("compenso_importo") != null ? rs.getBigDecimal("compenso_importo") : BigDecimal.ZERO,
+                            rs.getBoolean("urgente"),
+                            rs.getString("richiedente_nome")
+                    );
+                }).list(), List.of());
     }
 
     public Job jobById(long id) {
-        return jobs().stream().filter(job -> job.id() == id).findFirst().orElse(jobs().get(0));
+        if (jdbcClient == null) {
+            return defaultJob();
+        }
+
+
+        return safe(() -> jdbcClient.sql("""
+                        SELECT id, titolo, descrizione, categoria_nome, citta, luogo_note,
+                               latitudine, longitudine, compenso_importo, data_inizio,
+                               ora_inizio, durata_ore, urgente, richiedente_nome
+                        FROM v_annunci_attivi
+                        WHERE id = ?
+                        """)
+                .param(id)
+                .query((rs, rowNum) -> {
+                    Double lat = (Double) rs.getObject("latitudine");
+                    Double lon = (Double) rs.getObject("longitudine");
+                    return new Job(
+                            rs.getLong("id"),
+                            rs.getString("titolo"),
+                            rs.getString("descrizione"),
+                            rs.getString("categoria_nome"),
+                            zone(rs.getString("citta"), rs.getString("luogo_note")),
+                            distanceKm(lat, lon),
+                            rs.getBigDecimal("durata_ore") != null ? rs.getBigDecimal("durata_ore").doubleValue() : 0,
+                            rs.getObject("data_inizio", LocalDate.class),
+                            rs.getObject("ora_inizio", LocalTime.class),
+                            rs.getBigDecimal("compenso_importo") != null ? rs.getBigDecimal("compenso_importo") : BigDecimal.ZERO,
+                            rs.getBoolean("urgente"),
+                            rs.getString("richiedente_nome")
+                    );
+                })
+                .optional()
+                .orElseGet(() -> jobs().stream().findFirst().orElse(defaultJob())), defaultJob());
     }
 
     public List<YoungProfile> youngProfiles() {
-        return List.of(
-                new YoungProfile(1, "Matteo Rossi", 17, "Studente al Badoni, appassionato di tecnologia e ripetizioni.",
-                        List.of("Matematica", "Fisica", "Aiuto tech"), "Lun-Ven 16:00-19:00", "Lecco centro", 4.8, 7),
-                new YoungProfile(2, "Sara Colombo", 18, "Amo i bambini e la natura. Disponibile nel pomeriggio e weekend.",
-                        List.of("Babysitting", "Compagnia anziani", "Spesa"), "Mar-Sab 14:00-19:00", "Lecco Pescarenico", 4.9, 5),
-                new YoungProfile(3, "Luca Ferrari", 16, "Bravo in matematica e supporto smartphone per anziani.",
-                        List.of("Ripetizioni", "Aiuto tech"), "Lun-Gio 15:30-18:30", "Lecco Caleotto", 4.7, 3)
-        );
+        if (jdbcClient == null) {
+            return List.of();
+        }
+
+
+        return safe(() -> jdbcClient.sql("""
+                        SELECT vp.id,
+                               vp.nome,
+                               vp.cognome,
+                               vp.anni,
+                               vp.bio,
+                               vp.citta,
+                               vp.punteggio_medio,
+                               vp.n_lavori_completati,
+                               COALESCE(GROUP_CONCAT(DISTINCT c.nome ORDER BY c.nome SEPARATOR ','), '') AS skills,
+                               COALESCE(GROUP_CONCAT(DISTINCT CONCAT(LEFT(d.giorno,3), ' ',
+                                   TIME_FORMAT(d.ora_inizio, '%H:%i'), '-', TIME_FORMAT(d.ora_fine, '%H:%i'))
+                                   ORDER BY d.giorno SEPARATOR ' | '), 'Da concordare') AS availability
+                        FROM v_profilo_giovane vp
+                        JOIN profili_giovani pg ON pg.utente_id = vp.id
+                        LEFT JOIN giovane_competenze gc ON gc.giovane_id = pg.id
+                        LEFT JOIN competenze c ON c.id = gc.competenza_id
+                        LEFT JOIN disponibilita d ON d.giovane_id = pg.id
+                        GROUP BY vp.id, vp.nome, vp.cognome, vp.anni, vp.bio, vp.citta,
+                                 vp.punteggio_medio, vp.n_lavori_completati
+                        ORDER BY vp.punteggio_medio DESC, vp.n_lavori_completati DESC
+                        """)
+                .query((rs, rowNum) -> new YoungProfile(
+                        rs.getLong("id"),
+                        rs.getString("nome") + " " + rs.getString("cognome"),
+                        rs.getInt("anni"),
+                        rs.getString("bio"),
+                        parseSkills(rs.getString("skills")),
+                        rs.getString("availability"),
+                        rs.getString("citta"),
+                        rs.getBigDecimal("punteggio_medio") != null ? rs.getBigDecimal("punteggio_medio").doubleValue() : 0,
+                        rs.getInt("n_lavori_completati")
+                )).list(), List.of());
     }
 
     public YoungProfile youngProfileById(long id) {
-        return youngProfiles().stream().filter(profile -> profile.id() == id).findFirst().orElse(youngProfiles().get(0));
+        return youngProfiles().stream().filter(profile -> profile.id() == id).findFirst().orElse(youngProfiles().stream().findFirst().orElse(defaultProfile()));
     }
 
     public List<Review> reviews() {
-        return List.of(
-                new Review("Signora Verdi", "Sara Colombo", 5, "Puntuale, dolce con i bambini e molto affidabile."),
-                new Review("Matteo Rossi", "Famiglia Ferrari", 4, "Ambiente sereno, esperienza utile e ben organizzata."),
-                new Review("Comune di Lecco", "Giulia Bianchi", 5, "Grande energia durante l'evento, consigliata.")
-        );
+        if (jdbcClient == null) {
+            return List.of();
+        }
+
+
+        return safe(() -> jdbcClient.sql("""
+                        SELECT CONCAT(a.nome, ' ', a.cognome) AS autore,
+                               CONCAT(d.nome, ' ', d.cognome) AS destinatario,
+                               r.voto,
+                               COALESCE(r.testo, 'Nessun commento') AS testo
+                        FROM recensioni r
+                        JOIN utenti a ON a.id = r.autore_id
+                        JOIN utenti d ON d.id = r.destinatario_id
+                        ORDER BY r.created_at DESC
+                        LIMIT 20
+                        """)
+                .query((rs, rowNum) -> new Review(
+                        rs.getString("autore"),
+                        rs.getString("destinatario"),
+                        rs.getInt("voto"),
+                        rs.getString("testo")
+                )).list(), List.of());
     }
 
     public List<ChatMessage> chatMessages() {
-        return List.of(
-                new ChatMessage("Signora Verdi", "Ciao Sara! Sei disponibile martedì alle 15?", "15:02", false),
-                new ChatMessage("Tu", "Ciao! Sì certo, ci sono. Porto qualcosa?", "15:05", true),
-                new ChatMessage("Signora Verdi", "No grazie, pensiamo a tutto noi 😊", "15:06", false)
-        );
+        if (jdbcClient == null) {
+            return List.of();
+        }
+
+
+        return safe(() -> jdbcClient.sql("""
+                        SELECT CASE WHEN m.mittente_id = ? THEN 'Tu'
+                                    ELSE CONCAT(u.nome, ' ', u.cognome)
+                               END AS mittente,
+                               m.testo,
+                               DATE_FORMAT(m.inviato_at, '%H:%i') AS orario,
+                               (m.mittente_id = ?) AS mio
+                        FROM messaggi m
+                        JOIN utenti u ON u.id = m.mittente_id
+                        WHERE m.conversazione_id = (
+                            SELECT id
+                            FROM conversazioni
+                            ORDER BY COALESCE(ultimo_messaggio_at, created_at) DESC
+                            LIMIT 1
+                        )
+                        ORDER BY m.inviato_at ASC
+                        """)
+                .param(DEMO_GIOVANE_ID)
+                .param(DEMO_GIOVANE_ID)
+                .query((rs, rowNum) -> new ChatMessage(
+                        rs.getString("mittente"),
+                        rs.getString("testo"),
+                        rs.getString("orario"),
+                        rs.getBoolean("mio")
+                )).list(), List.of());
     }
 
     public DashboardStats youngStats() {
-        return new DashboardStats(12, 4, 2, 4.9);
+        if (jdbcClient == null) {
+            return new DashboardStats(0, 0, 0, 0);
+        }
+
+
+        Integer nearbyJobs = safe(() -> jdbcClient.sql("SELECT COUNT(*) FROM v_annunci_attivi")
+                .query(Integer.class)
+                .single(), 0);
+
+        Integer applications = safe(() -> jdbcClient.sql("SELECT COUNT(*) FROM candidature WHERE giovane_utente_id = ?")
+                .param(DEMO_GIOVANE_ID)
+                .query(Integer.class)
+                .single(), 0);
+
+        Integer activeChats = safe(() -> jdbcClient.sql("""
+                        SELECT COUNT(*)
+                        FROM conversazioni
+                        WHERE partecipante_1 = ? OR partecipante_2 = ?
+                        """)
+                .param(DEMO_GIOVANE_ID)
+                .param(DEMO_GIOVANE_ID)
+                .query(Integer.class)
+                .single(), 0);
+
+        Double reputation = safe(() -> jdbcClient.sql("SELECT punteggio_medio FROM profili_giovani WHERE utente_id = ?")
+                .param(DEMO_GIOVANE_ID)
+                .query(Double.class)
+                .optional()
+                .orElse(0.0), 0.0);
+
+        return new DashboardStats(nearbyJobs, applications, activeChats, reputation);
     }
 
     public DashboardStats requesterStats() {
-        return new DashboardStats(5, 18, 3, 4.7);
+        if (jdbcClient == null) {
+            return new DashboardStats(0, 0, 0, 0);
+        }
+
+
+        Integer activeJobs = safe(() -> jdbcClient.sql("""
+                        SELECT COUNT(*)
+                        FROM annunci
+                        WHERE richiedente_id = ? AND stato = 'attivo' AND visibile = 1
+                        """)
+                .param(DEMO_RICHIEDENTE_ID)
+                .query(Integer.class)
+                .single(), 0);
+
+        Integer receivedApplications = safe(() -> jdbcClient.sql("""
+                        SELECT COUNT(*)
+                        FROM candidature c
+                        JOIN annunci a ON a.id = c.annuncio_id
+                        WHERE a.richiedente_id = ?
+                        """)
+                .param(DEMO_RICHIEDENTE_ID)
+                .query(Integer.class)
+                .single(), 0);
+
+        Integer activeChats = safe(() -> jdbcClient.sql("""
+                        SELECT COUNT(*)
+                        FROM conversazioni
+                        WHERE partecipante_1 = ? OR partecipante_2 = ?
+                        """)
+                .param(DEMO_RICHIEDENTE_ID)
+                .param(DEMO_RICHIEDENTE_ID)
+                .query(Integer.class)
+                .single(), 0);
+
+        Double reputation = safe(() -> jdbcClient.sql("SELECT punteggio_medio FROM profili_richiedenti WHERE utente_id = ?")
+                .param(DEMO_RICHIEDENTE_ID)
+                .query(Double.class)
+                .optional()
+                .orElse(0.0), 0.0);
+
+        return new DashboardStats(activeJobs, receivedApplications, activeChats, reputation);
+    }
+
+
+    private Job defaultJob() {
+        return new Job(0,
+                "Nessun annuncio disponibile",
+                "Al momento non ci sono annunci attivi nel database.",
+                "Altro",
+                "Lecco",
+                0,
+                0,
+                LocalDate.now(),
+                LocalTime.NOON,
+                BigDecimal.ZERO,
+                false,
+                "HelpingHood");
+    }
+
+    private YoungProfile defaultProfile() {
+        return new YoungProfile(0,
+                "Profilo non disponibile",
+                0,
+                "Il profilo richiesto non è disponibile.",
+                List.of("Disponibile"),
+                "Da concordare",
+                "Lecco",
+                0,
+                0);
+    }
+
+    private String zone(String city, String note) {
+        if (city == null || city.isBlank()) {
+            return note == null ? "Zona non specificata" : note;
+        }
+        if (note == null || note.isBlank()) {
+            return city;
+        }
+        return city + " - " + note;
+    }
+
+    private double distanceKm(Double lat, Double lon) {
+        if (lat == null || lon == null) {
+            return 0.0;
+        }
+        final double earthRadius = 6371.0;
+        double dLat = Math.toRadians(lat - BASE_LAT);
+        double dLon = Math.toRadians(lon - BASE_LON);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(BASE_LAT)) * Math.cos(Math.toRadians(lat))
+                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return Math.round(earthRadius * c * 10.0) / 10.0;
+    }
+
+    private List<String> parseSkills(String rawSkills) {
+        if (rawSkills == null || rawSkills.isBlank()) {
+            return List.of("Disponibile");
+        }
+        return Arrays.stream(rawSkills.split(","))
+                .map(String::trim)
+                .filter(skill -> !skill.isBlank())
+                .toList();
+    }
+
+    private <T> T safe(Supplier<T> operation, T fallback) {
+        try {
+            return operation.get();
+        } catch (RuntimeException ex) {
+            return fallback;
+        }
     }
 
     public record Category(long id, String name, String icon, String colorHex) {
