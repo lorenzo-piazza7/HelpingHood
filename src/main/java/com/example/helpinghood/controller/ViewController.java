@@ -31,7 +31,10 @@ public class ViewController {
     public String youngDashboard(Model model) {
         model.addAttribute("stats", demoDataService.youngStats());
         model.addAttribute("jobs", demoDataService.jobs());
-        model.addAttribute("profile", demoDataService.youngProfiles().get(0));
+        model.addAttribute("profile", demoDataService.youngProfiles().stream().findFirst().orElse(
+                new DemoDataService.YoungProfile(0, "Profilo non disponibile", 0, "Nessun profilo disponibile.",
+                        java.util.List.of("Disponibile"), "Da concordare", "Lecco", 0, 0)
+        ));
         return "pages/dashboard-young";
     }
 
