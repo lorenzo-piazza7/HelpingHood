@@ -242,6 +242,8 @@ public class ViewController {
             return "redirect:/lavori/" + id;
         }
 
+        // In questo mockup la richiesta viene subito considerata accettata,
+        // quindi il lavoro passa direttamente a "in_corso".
         Candidatura candidatura = new Candidatura();
         candidatura.setAnnuncioId(id);
         candidatura.setGiovaneUtenteId(utente.getId());
@@ -253,6 +255,7 @@ public class ViewController {
         annuncio.setNCandidature((annuncio.getNCandidature() == null ? 0 : annuncio.getNCandidature()) + 1);
         annuncioService.save(annuncio);
 
+        // Creiamo la chat se assente, altrimenti riusiamo quella gia esistente.
         Optional<Conversazione> existingConversation = conversazioneRepository
                 .findByAnnuncioIdAndParticipants(id, utente.getId(), annuncio.getRichiedenteId());
         Conversazione conversazione = existingConversation.orElseGet(() -> {
@@ -298,6 +301,7 @@ public class ViewController {
 
         Annuncio annuncio = annuncioService.findById(id).orElse(null);
         if (annuncio != null) {
+            // L'annuncio torna disponibile e si allinea il contatore candidature.
             annuncio.setStato("attivo");
             int count = annuncio.getNCandidature() == null ? 0 : annuncio.getNCandidature();
             annuncio.setNCandidature(Math.max(0, count - 1));
@@ -310,6 +314,7 @@ public class ViewController {
                 annuncio != null ? annuncio.getRichiedenteId() : utente.getId()
         );
         conversation.ifPresent(c -> {
+            // Nel modello corrente, annullare la richiesta chiude anche la chat legata a quel lavoro.
             messaggioRepository.deleteByConversazioneId(c.getId());
             conversazioneRepository.delete(c);
         });
@@ -410,6 +415,7 @@ public class ViewController {
             return "redirect:/dashboard/richiedente/giovani/" + youngId + "/dettagli?jobId=" + jobId;
         }
 
+        // La recensione e sempre agganciata a un record "lavoro" consistente.
         Lavoro lavoro = ensureLavoroRecord(candidatura, annuncio, utente.getId(), youngId);
         Recensione recensione = recensioneService.findByLavoroAndAutore(lavoro.getId(), utente.getId())
                 .orElseGet(Recensione::new);
@@ -453,6 +459,7 @@ public class ViewController {
         }
 
         Lavoro lavoro = ensureLavoroRecord(candidatura, annuncio, utente.getId(), youngId);
+        // Chiusura lavoro: aggiorniamo timeline e stato definitivo.
         lavoro.setStato("completato");
         if (lavoro.getDataInizioEff() == null) {
             lavoro.setDataInizioEff(LocalDateTime.now());
@@ -466,6 +473,7 @@ public class ViewController {
         annuncio.setNCandidature(Math.max(0, candidatureCount - 1));
         annuncioService.save(annuncio);
 
+        // Dopo il completamento non serve mantenere candidatura e chat operativa.
         candidaturaService.delete(candidatura);
 
         conversazioneRepository.findByAnnuncioIdAndParticipants(jobId, youngId, utente.getId()).ifPresent(conversazione -> {
@@ -668,6 +676,7 @@ public class ViewController {
         }
 
         int eta = Period.between(birthDate, LocalDate.now()).getYears();
+        // Doppio controllo: eta ricavata dalla data + campo anni compilato nel profilo.
         if (eta < 14 || eta > 25 || anni < 14 || anni > 25) {
             model.addAttribute("errorMessage", "Eta consentita tra 14 e 25 anni.");
             bindYoungProfileModel(model, utente, profilo);
@@ -1063,6 +1072,7 @@ public class ViewController {
     }
 
     private Lavoro ensureLavoroRecord(Candidatura candidatura, Annuncio annuncio, long richiedenteId, long giovaneId) {
+        // Garantisce idempotenza: se esiste lo stesso lavoro lo riusa, altrimenti lo crea.
         return lavoroRepository.findByCandidaturaId(candidatura.getId()).orElseGet(() -> {
             Lavoro lavoro = new Lavoro();
             lavoro.setCandidaturaId(candidatura.getId());
@@ -1076,6 +1086,7 @@ public class ViewController {
     }
 
     private void recalculateYoungReputation(long youngId) {
+        // Reputazione derivata solo da recensioni visibili, con media normalizzata a 2 decimali.
         List<Recensione> reviews = recensioneService.findVisibleByDestinatario(youngId);
         BigDecimal average = reviews.isEmpty()
                 ? BigDecimal.ZERO

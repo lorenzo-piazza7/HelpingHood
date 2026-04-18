@@ -16,9 +16,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
+                        // Rotte pubbliche: landing, autenticazione e asset statici.
                         .requestMatchers("/", "/auth", "/register", "/css/**", "/js/**", "/favicon.ico", "/error").permitAll()
+                        // Area privata del giovane.
                         .requestMatchers("/dashboard/giovane", "/profilo/giovane", "/profilo/giovane/**")
                         .hasRole("GIOVANE")
+                        // Area privata del richiedente + gestione annunci.
                         .requestMatchers(
                                 "/dashboard/richiedente",
                                 "/dashboard/richiedente/lavori",
@@ -33,6 +36,7 @@ public class SecurityConfig {
                                 "/giovani"
                         )
                         .hasRole("RICHIEDENTE")
+                        // Sezioni condivise ai ruoli applicativi autenticati.
                         .requestMatchers("/lavori", "/lavori/**", "/chat", "/chat/lavori", "/chat/lavori/**")
                         .hasAnyRole("GIOVANE", "RICHIEDENTE", "ADMIN")
                         .anyRequest().authenticated()
@@ -41,6 +45,7 @@ public class SecurityConfig {
                         .loginPage("/auth")
                         .loginProcessingUrl("/auth")
                         .successHandler((request, response, authentication) -> {
+                            // Dopo login si atterra sulla dashboard coerente con il ruolo.
                             String targetUrl = "/home";
                             if (authentication.getAuthorities().stream()
                                     .anyMatch(authority -> "ROLE_GIOVANE".equals(authority.getAuthority()))) {

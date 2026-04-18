@@ -41,6 +41,7 @@ public class RegistrationService {
 
     @Transactional
     public RegistrationResult register(RegistrationRequest request) {
+        // Validazione minima richiesta dal form di registrazione.
         if (!StringUtils.hasText(request.nome()) || !StringUtils.hasText(request.cognome())
                 || !StringUtils.hasText(request.email()) || !StringUtils.hasText(request.password())
                 || !StringUtils.hasText(request.confermaPassword()) || !StringUtils.hasText(request.ruolo())
@@ -63,6 +64,7 @@ public class RegistrationService {
         LocalDate today = LocalDate.now();
         LocalDate minBirthDate = today.minusYears(25);
         LocalDate maxBirthDate = today.minusYears(14);
+        // Vincolo business: la piattaforma e pensata per la fascia 14-25 anni.
         if (birthDate.isBefore(minBirthDate) || birthDate.isAfter(maxBirthDate)) {
             return new RegistrationResult(false, "La data di nascita deve corrispondere a un'età tra 14 e 25 anni.");
         }
@@ -92,6 +94,7 @@ public class RegistrationService {
 
         Utente saved = utenteRepository.save(utente);
 
+        // Dopo la creazione dell'utente, inizializziamo il profilo specifico per ruolo.
         if (ROLE_GIOVANE.equals(role)) {
             ProfiloGiovane profiloGiovane = new ProfiloGiovane();
             profiloGiovane.setUtenteId(saved.getId());
@@ -110,6 +113,7 @@ public class RegistrationService {
         if (rawRole == null) {
             return null;
         }
+        // Manteniamo esplicitamente una whitelist per evitare ruoli arbitrari dal client.
         String role = rawRole.trim().toLowerCase(Locale.ROOT);
         if (ROLE_GIOVANE.equals(role)) {
             return ROLE_GIOVANE;

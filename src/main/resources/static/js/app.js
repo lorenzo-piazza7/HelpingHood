@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Filtri per la lista lavori: ogni card resta visibile solo se rispetta tutti i criteri.
     const category = document.getElementById('filter-category');
     const distance = document.getElementById('filter-distance');
     const time = document.getElementById('filter-time');
@@ -30,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
             el?.addEventListener('change', applyFilters);
         });
         clear?.addEventListener('click', () => {
+            // Reset completo dei controlli e riesecuzione del filtro.
             if (category) category.value = '';
             if (distance) distance.value = '';
             if (time) time.value = '';
@@ -71,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         el?.addEventListener('change', applyYoungFilters);
     });
     clearYoung?.addEventListener('click', () => {
+        // Stesso pattern del filtro lavori, applicato all'elenco giovani.
         if (youngCity) youngCity.value = '';
         if (youngSkill) youngSkill.value = '';
         if (youngAge) youngAge.value = '';

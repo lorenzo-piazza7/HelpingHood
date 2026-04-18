@@ -29,6 +29,7 @@ public class AuthController {
 
     @GetMapping("/auth")
     public String loginPage(Authentication authentication) {
+        // Evita di mostrare la login quando la sessione e gia valida.
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
             return "redirect:/home";
         }
@@ -55,6 +56,7 @@ public class AuthController {
                            RedirectAttributes redirectAttributes,
                            Model model) {
 
+        // Tutta la logica di validazione/salvataggio e centralizzata nel service.
         RegistrationService.RegistrationResult result = registrationService.register(
                 new RegistrationService.RegistrationRequest(
                         nome,
@@ -71,6 +73,7 @@ public class AuthController {
         );
 
         if (!result.success()) {
+            // In caso di errore ripopoliamo il form per non perdere i dati inseriti.
             model.addAttribute("errorMessage", result.message());
             model.addAttribute("nome", nome);
             model.addAttribute("cognome", cognome);

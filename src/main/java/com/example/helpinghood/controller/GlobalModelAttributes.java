@@ -34,6 +34,8 @@ public class GlobalModelAttributes {
         if (authentication == null || authentication.getName() == null) {
             return false;
         }
+        // Leggiamo il ruolo dal dominio applicativo, non solo dalle authority,
+        // cosi le view usano la stessa fonte dati dei controller.
         Utente utente = utenteService.findActiveByEmail(authentication.getName()).orElse(null);
         return utente != null && role.equalsIgnoreCase(utente.getRuolo());
     }
