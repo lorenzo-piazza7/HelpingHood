@@ -3,36 +3,58 @@
 <head th:replace="~{fragments/layout :: head('Dettaglio lavoretto')}"></head>
 <body>
 <div th:replace="~{fragments/layout :: navbar('lavori')}"></div>
-<main class="container">
-    <section class="card">
-        <div class="row-between">
-            <span class="pill" th:text="${job.category}"></span>
-            <span th:if="${job.urgent}" class="pill danger">Urgente</span>
-        </div>
-        <h1 th:text="${job.title}"></h1>
-        <p th:text="${job.description}"></p>
-        <ul class="detail-list">
-            <li><strong>Zona:</strong> <span th:text="${job.zone}"></span></li>
-            <li><strong>Distanza:</strong> <span th:text="${job.distanceKm + ' km'}"></span></li>
-            <li><strong>Giorno e orario:</strong> <span th:text="${#temporals.format(job.day, 'dd/MM/yyyy') + ' · ' + #temporals.format(job.time, 'HH:mm')}"></span></li>
-            <li><strong>Durata:</strong> <span th:text="${job.durationHours + ' ore'}"></span></li>
-            <li><strong>Compenso:</strong> <span th:text="${job.hourlyCompensation == 0 ? 'Volontariato' : '€ ' + job.hourlyCompensation + '/h'}"></span></li>
-            <li><strong>Richiedente:</strong> <span th:text="${job.requesterName}"></span></li>
-        </ul>
-        <div class="row-gap">
-            <button type="button" class="btn">Candidatura rapida</button>
-            <a class="btn btn-light" th:href="@{/chat}">Apri chat</a>
-        </div>
-    </section>
+<main class="container job-detail-page">
+    <section class="card job-detail-card">
+        <p class="success-msg" th:if="${successMessage}" th:text="${successMessage}"></p>
+        <p class="error-msg" th:if="${errorMessage}" th:text="${errorMessage}"></p>
 
-    <section>
-        <h2>Affidabilità e recensioni recenti</h2>
-        <div class="grid cards-2">
-            <article class="card" th:each="review : ${reviews}">
-                <p><strong th:text="${review.author}"></strong> → <span th:text="${review.target}"></span></p>
-                <p th:text="${#strings.repeat('⭐', review.rating)}"></p>
-                <p th:text="${review.text}"></p>
+        <div class="job-detail-hero">
+            <div>
+                <div class="row-gap">
+                    <span class="pill" th:text="${categoriaNome}"></span>
+                    <span th:if="${annuncio.urgente}" class="pill danger">Urgente</span>
+                    <span class="pill young-status-pill booked" th:if="${jobAlreadyRequested}">Preso</span>
+                    <span class="pill" th:text="${annuncio.stato}"></span>
+                </div>
+                <h1 th:text="${annuncio.titolo}"></h1>
+                <p th:text="${annuncio.descrizione}"></p>
+            </div>
+            <div class="job-detail-side">
+                <h3>Dettagli rapidi</h3>
+                <p><strong>Richiedente:</strong> <span th:text="${richiedenteNome}"></span></p>
+                <p><strong>Pagamento:</strong> <span th:text="${annuncio.compensoImporto == null || annuncio.compensoImporto == 0 ? 'Volontariato' : 'EUR ' + annuncio.compensoImporto + ' / ' + (annuncio.compensoTipo != null ? annuncio.compensoTipo : 'orario')}"></span></p>
+                <p><strong>Data:</strong> <span th:text="${annuncio.dataInizio != null && annuncio.oraInizio != null ? #temporals.format(annuncio.dataInizio, 'dd/MM/yyyy') + ' · ' + #temporals.format(annuncio.oraInizio, 'HH:mm') : 'Da definire'}"></span></p>
+            </div>
+        </div>
+
+        <div class="job-detail-info-grid">
+            <article class="job-detail-info-card">
+                <h3>Luogo</h3>
+                <p><strong>Citta:</strong> <span th:text="${annuncio.citta != null ? annuncio.citta : 'Non specificata'}"></span></p>
+                <p><strong>Indirizzo:</strong> <span th:text="${annuncio.indirizzo != null ? annuncio.indirizzo : 'Non specificato'}"></span></p>
+                <p><strong>Note:</strong> <span th:text="${annuncio.luogoNote != null ? annuncio.luogoNote : 'Nessuna nota'}"></span></p>
             </article>
+            <article class="job-detail-info-card">
+                <h3>Pianificazione</h3>
+                <p><strong>Data e ora:</strong> <span th:text="${annuncio.dataInizio != null && annuncio.oraInizio != null ? #temporals.format(annuncio.dataInizio, 'dd/MM/yyyy') + ' · ' + #temporals.format(annuncio.oraInizio, 'HH:mm') : 'Da definire'}"></span></p>
+                <p><strong>Durata:</strong> <span th:text="${annuncio.durataOre != null ? annuncio.durataOre + ' ore' : 'Da definire'}"></span></p>
+                <p><strong>Stato:</strong> <span th:text="${annuncio.stato}"></span></p>
+            </article>
+            <article class="job-detail-info-card">
+                <h3>Compenso</h3>
+                <p><strong>Tipo:</strong> <span th:text="${annuncio.compensoTipo != null ? annuncio.compensoTipo : 'orario'}"></span></p>
+                <p><strong>Importo:</strong> <span th:text="${annuncio.compensoImporto == null || annuncio.compensoImporto == 0 ? 'Volontariato' : 'EUR ' + annuncio.compensoImporto}"></span></p>
+                <p><strong>Valuta:</strong> <span th:text="${annuncio.valuta != null ? annuncio.valuta : 'EUR'}"></span></p>
+            </article>
+        </div>
+
+        <div class="row-gap">
+            <form method="post" th:if="${isGiovaneViewer}" th:action="@{'/lavori/' + ${annuncio.id} + '/richiedi'}" class="inline-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="btn" th:disabled="${jobAlreadyRequested}" th:text="${jobAlreadyRequested ? 'Lavoro preso' : 'Richiedi lavoro'}"></button>
+            </form>
+            <a class="btn btn-light" th:href="@{/chat/lavori}" th:if="${isGiovaneViewer}">Chat lavori</a>
+            <a class="btn btn-light" th:href="@{/chat}">Chat AI</a>
         </div>
     </section>
 </main>

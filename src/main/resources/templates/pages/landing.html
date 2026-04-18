@@ -10,7 +10,7 @@
         <p>Trova un lavoretto vicino a te e trasforma il digitale in esperienze vere nel tuo quartiere.</p>
         <div class="hero-actions">
             <a class="btn" th:href="@{/lavori}">Trova un lavoretto vicino a te</a>
-            <a class="btn btn-light" th:href="@{/annunci/nuovo}">Pubblica una richiesta</a>
+            <a class="btn btn-light" th:if="${canCreateJob}" th:href="@{/annunci/nuovo}">Pubblica una richiesta</a>
         </div>
     </section>
 

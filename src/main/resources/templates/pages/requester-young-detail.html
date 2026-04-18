@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dettagli giovane attivo')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('richiedente')}"></div>
+<main class="container">
+    <section class="card young-profile-card">
+        <p class="success-msg" th:if="${successMessage}" th:text="${successMessage}"></p>
+        <p class="error-msg" th:if="${errorMessage}" th:text="${errorMessage}"></p>
+
+        <div class="row-between">
+            <div>
+                <h1 th:text="${youngProfile.name}">Giovane</h1>
+                <p th:text="${youngProfile.age + ' anni · ' + youngProfile.zone}"></p>
+            </div>
+            <a class="btn btn-sm btn-light" th:href="@{/dashboard/richiedente}">Torna alla dashboard</a>
+        </div>
+
+        <p th:text="${youngProfile.bio}"></p>
+
+        <div class="skills">
+            <span class="pill" th:each="skill : ${youngProfile.skills}" th:text="${skill}"></span>
+        </div>
+    </section>
+
+    <section class="young-dashboard-section-card">
+        <h2>Giovani attivi nei tuoi lavori · Dettagli operativi</h2>
+        <p th:if="${#lists.isEmpty(activeJobs)}" class="young-dashboard-empty">Nessun lavoro attivo con questo giovane.</p>
+
+        <article class="card young-dashboard-item" th:each="active : ${activeJobs}">
+            <div class="row-between">
+                <span class="pill" th:text="${active.status}"></span>
+                <small th:text="${active.appliedAt}"></small>
+            </div>
+            <h3 th:text="${active.jobTitle}"></h3>
+            <p th:text="${active.city}"></p>
+
+            <div class="row-between mt-12">
+                <a class="btn btn-sm btn-light" th:href="@{'/chat/lavori/' + ${active.jobId}}">Apri chat lavoro</a>
+                <form class="inline-form" method="post" th:action="@{'/dashboard/richiedente/lavori/' + ${active.jobId} + '/completa'}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" name="youngId" th:value="${youngId}">
+                    <button type="submit" class="btn btn-sm">Lavoro completato</button>
+                </form>
+            </div>
+
+            <form class="form-grid mt-12" method="post" th:action="@{'/dashboard/richiedente/giovani/' + ${youngId} + '/commento'}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="jobId" th:value="${active.jobId}">
+
+                <label>Rating (0-5 stelle)
+                    <select name="rating" required>
+                        <option value="0">0 - ☆☆☆☆☆</option>
+                        <option value="1">1 - ★☆☆☆☆</option>
+                        <option value="2">2 - ★★☆☆☆</option>
+                        <option value="3">3 - ★★★☆☆</option>
+                        <option value="4">4 - ★★★★☆</option>
+                        <option value="5">5 - ★★★★★</option>
+                    </select>
+                </label>
+                <label class="full">Commento
+                    <textarea name="comment" rows="3" placeholder="Lascia un commento sul giovane"></textarea>
+                </label>
+                <div class="full job-form-actions">
+                    <button type="submit" class="btn btn-sm">Salva commento</button>
+                </div>
+            </form>
+        </article>
+    </section>
+
+    <section class="young-dashboard-section-card">
+        <h2>Commenti gia ricevuti</h2>
+        <p th:if="${#lists.isEmpty(youngReviews)}" class="young-dashboard-empty">Nessun commento disponibile.</p>
+        <div class="grid cards-2" th:if="${!#lists.isEmpty(youngReviews)}">
+            <article class="card" th:each="review : ${youngReviews}">
+                <p><strong th:text="${review.author}"></strong></p>
+                <p th:text="${#strings.repeat('★', review.rating) + #strings.repeat('☆', 5 - review.rating)}"></p>
+                <p th:text="${review.text}"></p>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>
+

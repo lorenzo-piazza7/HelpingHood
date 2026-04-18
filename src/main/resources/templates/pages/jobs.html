@@ -28,17 +28,35 @@
 
     <section class="grid cards-2" id="jobs-list">
         <article class="card job-card" th:each="job : ${jobs}"
-                 th:attr="data-category=${job.category},data-distance=${job.distanceKm},data-time=${#temporals.format(job.time, 'HH:mm')},data-pay=${job.hourlyCompensation}">
+                 th:with="isMine=${isGiovaneViewer and myRequestedJobIds.contains(job.id)},isTaken=${job.status != null and job.status != 'attivo'}"
+                 th:attr="data-category=${job.category != null ? job.category : ''},
+                          data-distance=${job.distanceKm},
+                          data-time=${job.time != null ? #temporals.format(job.time, 'HH:mm') : ''},
+                          data-pay=${job.hourlyCompensation != null ? job.hourlyCompensation : 0}">
             <div class="row-between">
                 <span class="pill" th:text="${job.category}"></span>
-                <span class="pill success" th:text="${job.distanceKm + ' km'}"></span>
+                <div class="row-gap">
+                    <span class="pill success" th:text="${job.distanceKm + ' km'}"></span>
+                    <span class="pill young-status-pill" th:classappend="${isTaken ? 'booked' : 'active'}" th:text="${isTaken ? 'preso' : 'attivo'}"></span>
+                </div>
             </div>
             <h3 th:text="${job.title}"></h3>
             <p th:text="${job.description}"></p>
-            <p th:text="${job.zone + ' · ' + #temporals.format(job.day, 'dd/MM') + ' ' + #temporals.format(job.time, 'HH:mm')}"></p>
+            <p th:text="${job.zone + ' · ' + (job.day != null && job.time != null ? #temporals.format(job.day, 'dd/MM') + ' ' + #temporals.format(job.time, 'HH:mm') : 'Data da definire')}"></p>
             <div class="row-between mt-12">
-                <strong th:text="${job.hourlyCompensation == 0 ? 'Volontariato' : '€ ' + job.hourlyCompensation + '/h'}"></strong>
-                <a class="btn btn-sm" th:href="@{'/lavori/' + ${job.id}}">Candidati</a>
+                <strong th:text="${job.hourlyCompensation == null || job.hourlyCompensation == 0 ? 'Volontariato' : '€ ' + job.hourlyCompensation + '/h'}"></strong>
+                <div class="row-gap" th:if="${isGiovaneViewer}">
+                    <form class="inline-form" method="post" th:if="${isMine}" th:action="@{'/lavori/' + ${job.id} + '/annulla'}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button class="btn btn-sm btn-light" type="submit">Annulla</button>
+                    </form>
+                    <form class="inline-form" method="post" th:if="${!isMine}" th:action="@{'/lavori/' + ${job.id} + '/richiedi'}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button class="btn btn-sm" type="submit" th:disabled="${isTaken}" th:text="${isTaken ? 'Preso' : 'Candidati'}"></button>
+                    </form>
+                    <a class="btn btn-sm btn-light" th:href="@{'/lavori/' + ${job.id}}">Dettaglio</a>
+                </div>
+                <a class="btn btn-sm" th:if="${!isGiovaneViewer}" th:href="@{'/lavori/' + ${job.id}}">Dettaglio</a>
             </div>
         </article>
     </section>

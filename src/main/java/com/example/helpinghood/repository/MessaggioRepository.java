@@ -8,4 +8,6 @@ import java.util.List;
 public interface MessaggioRepository extends JpaRepository<Messaggio, Long> {
 
     List<Messaggio> findByConversazioneIdOrderByInviatoAtAsc(Long conversazioneId);
+
+    void deleteByConversazioneId(Long conversazioneId);
 }

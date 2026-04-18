@@ -16,13 +16,41 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/", "/auth", "/register", "/css/**", "/js/**", "/error").permitAll()
+                        .requestMatchers("/", "/auth", "/register", "/css/**", "/js/**", "/favicon.ico", "/error").permitAll()
+                        .requestMatchers("/dashboard/giovane", "/profilo/giovane", "/profilo/giovane/**")
+                        .hasRole("GIOVANE")
+                        .requestMatchers(
+                                "/dashboard/richiedente",
+                                "/dashboard/richiedente/lavori",
+                                "/dashboard/richiedente/lavori/**",
+                                "/dashboard/richiedente/giovani/**",
+                                "/profilo/richiedente",
+                                "/profilo/richiedente/**",
+                                "/annunci",
+                                "/annunci/nuovo",
+                                "/annunci/nuovo/**",
+                                "/annunci/*/modifica",
+                                "/giovani"
+                        )
+                        .hasRole("RICHIEDENTE")
+                        .requestMatchers("/lavori", "/lavori/**", "/chat", "/chat/lavori", "/chat/lavori/**")
+                        .hasAnyRole("GIOVANE", "RICHIEDENTE", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/auth")
                         .loginProcessingUrl("/auth")
-                        .defaultSuccessUrl("/home", true)
+                        .successHandler((request, response, authentication) -> {
+                            String targetUrl = "/home";
+                            if (authentication.getAuthorities().stream()
+                                    .anyMatch(authority -> "ROLE_GIOVANE".equals(authority.getAuthority()))) {
+                                targetUrl = "/dashboard/giovane";
+                            } else if (authentication.getAuthorities().stream()
+                                    .anyMatch(authority -> "ROLE_RICHIEDENTE".equals(authority.getAuthority()))) {
+                                targetUrl = "/dashboard/richiedente";
+                            }
+                            response.sendRedirect(request.getContextPath() + targetUrl);
+                        })
                         .failureUrl("/auth?error=true")
                         .permitAll()
                 )

@@ -28,6 +28,10 @@ public class UtenteService {
         return utenteRepository.findByRuoloAndAttivoTrueOrderByCognomeAscNomeAsc(ruolo);
     }
 
+    public boolean existsByEmail(String email) {
+        return utenteRepository.existsByEmailIgnoreCase(email);
+    }
+
     public Utente save(Utente utente) {
         return utenteRepository.save(utente);
     }

@@ -3,9 +3,9 @@
 <head th:replace="~{fragments/layout :: head('Dashboard giovane')}"></head>
 <body>
 <div th:replace="~{fragments/layout :: navbar('giovane')}"></div>
-<main class="container">
+<main class="container young-dashboard-page">
     <h1>Ciao <span th:text="${profile.name}"></span> 👋</h1>
-    <p>Piccoli lavori vicino a te, in modo semplice e concreto.</p>
+    <p>Trova opportunita vicine, monitora le candidature e tieni attive le conversazioni.</p>
 
     <section class="stats-grid">
         <article class="stat"><h3 th:text="${stats.nearbyJobs}"></h3><p>lavoretti vicini</p></article>
@@ -14,20 +14,76 @@
         <article class="stat"><h3 th:text="${stats.reputation}"></h3><p>reputazione</p></article>
     </section>
 
-    <section>
+    <section class="young-dashboard-section-card">
         <div class="row-between">
-            <h2>Proposte per te</h2>
-            <a class="btn btn-sm" th:href="@{/lavori}">Apri elenco lavori</a>
+            <h2>Lavori attivi nelle vicinanze</h2>
+            <a class="btn btn-sm" th:href="@{/lavori}">Tutti i lavori</a>
         </div>
-        <div class="grid cards-2">
-            <article class="card" th:each="job : ${jobs}">
+        <p th:if="${#lists.isEmpty(nearbyJobs)}" class="young-dashboard-empty">Nessun lavoro vicino disponibile al momento.</p>
+        <div class="grid cards-2" th:if="${!#lists.isEmpty(nearbyJobs)}">
+            <article class="card young-dashboard-item" th:each="job : ${nearbyJobs}">
                 <div class="row-between">
                     <span class="pill" th:text="${job.category}"></span>
-                    <span th:if="${job.urgent}" class="pill danger">Urgente</span>
+                    <span class="pill success" th:text="${job.distanceKm + ' km'}"></span>
                 </div>
                 <h3 th:text="${job.title}"></h3>
-                <p th:text="${job.zone + ' · ' + job.distanceKm + ' km'}"></p>
-                <a class="btn btn-sm" th:href="@{'/lavori/' + ${job.id}}">Candidatura rapida</a>
+                <p th:text="${job.zone}"></p>
+                <div class="row-between mt-12">
+                    <small th:text="${job.day != null && job.time != null ? #temporals.format(job.day, 'dd/MM') + ' · ' + #temporals.format(job.time, 'HH:mm') : 'Data da confermare'}"></small>
+                    <span class="pill young-status-pill"
+                          th:classappend="${job.status == 'prenotato' || job.status == 'preso'} ? 'booked' : (${job.status == 'completato'} ? 'done' : (${job.status == 'in_corso'} ? 'progress' : 'active'))"
+                          th:text="${job.status == 'in_corso' ? 'preso' : job.status}"></span>
+                    <a class="btn btn-sm" th:href="@{'/lavori/' + ${job.id}}">Dettaglio</a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="young-dashboard-section-card">
+        <div class="row-between">
+            <h2>Richieste inviate</h2>
+            <a class="btn btn-sm btn-light" th:href="@{/lavori}">Nuova candidatura</a>
+        </div>
+        <p th:if="${#lists.isEmpty(sentApplications)}" class="young-dashboard-empty">Non hai ancora inviato candidature.</p>
+        <div class="grid cards-2" th:if="${!#lists.isEmpty(sentApplications)}">
+            <article class="card young-dashboard-item" th:each="sentApp : ${sentApplications}">
+                <div class="row-between">
+                    <span class="pill" th:text="${sentApp.status}"></span>
+                    <small th:text="${sentApp.sentAt}"></small>
+                </div>
+                <h3 th:text="${sentApp.jobTitle}"></h3>
+                <p th:text="${sentApp.city + ' · ' + sentApp.requesterName}"></p>
+                <div class="row-between mt-12">
+                    <span class="pill success" th:text="${sentApp.compensation + ' EUR/ora'}"></span>
+                    <a class="btn btn-sm" th:href="@{'/lavori/' + ${sentApp.jobId}}">Apri annuncio</a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="young-dashboard-section-card">
+        <div class="row-between">
+            <h2>Chat attive sui lavori</h2>
+            <div class="row-gap">
+                <a class="btn btn-sm btn-light" th:href="@{/chat}">Chat AI</a>
+                <a class="btn btn-sm" th:href="@{/chat/lavori}">Tutte le chat lavoro</a>
+            </div>
+        </div>
+        <p th:if="${#lists.isEmpty(activeChats)}" class="young-dashboard-empty">Nessuna chat lavoro attiva: compariranno qui quando aderisci a un lavoro.</p>
+        <div class="grid cards-2" th:if="${!#lists.isEmpty(activeChats)}">
+            <article class="card young-dashboard-item" th:each="chat : ${activeChats}">
+                <div class="row-between">
+                    <span class="pill" th:text="${chat.counterpart}"></span>
+                    <span class="pill danger" th:if="${chat.unreadCount > 0}" th:text="${chat.unreadCount + ' non letti'}"></span>
+                    <small th:if="${chat.unreadCount == 0}" th:text="${chat.lastUpdated}"></small>
+                </div>
+                <h3 th:text="${chat.jobTitle}"></h3>
+                <p><strong>Stato adesione:</strong> <span th:text="${chat.applicationStatus}"></span></p>
+                <p th:text="${chat.lastMessage}"></p>
+                <div class="row-between mt-12">
+                    <small th:text="${chat.lastUpdated}"></small>
+                    <a class="btn btn-sm" th:href="@{'/chat/lavori/' + ${chat.jobId}}">Apri chat lavoro</a>
+                </div>
             </article>
         </div>
     </section>

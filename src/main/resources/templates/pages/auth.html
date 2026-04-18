@@ -3,27 +3,34 @@
 <head th:replace="~{fragments/layout :: head('Login')}"></head>
 <body>
 <div th:replace="~{fragments/layout :: navbar('auth')}"></div>
-<main class="container narrow">
-    <section class="card">
-        <h1>Accedi a HelpingHood</h1>
-        <p>Inserisci le tue credenziali per entrare nella piattaforma.</p>
+<main class="container narrow auth-page">
+    <section class="card auth-card">
+        <div class="auth-header">
+            <span class="auth-kicker">Bentornato</span>
+            <h1>Accedi a HelpingHood</h1>
+            <p class="auth-intro">Entra nella piattaforma per gestire lavori, candidature e conversazioni.</p>
+            <div class="auth-badges">
+                <span class="badge">Community locale</span>
+                <span class="badge">Supporto rapido</span>
+            </div>
+        </div>
 
         <p class="success-msg" th:if="${successMessage}" th:text="${successMessage}"></p>
         <p class="error-msg" th:if="${param.error}">Credenziali non valide.</p>
         <p class="success-msg" th:if="${param.logout}">Logout effettuato con successo.</p>
 
-        <form class="form-grid" method="post" th:action="@{/auth}">
+        <form class="form-grid auth-form" method="post" th:action="@{/auth}">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-            <label>Email
+            <label class="full">Email
                 <input type="email" name="username" placeholder="nome@email.it" required>
             </label>
-            <label>Password
+            <label class="full">Password
                 <input type="password" name="password" placeholder="********" required>
             </label>
-            <button type="submit" class="btn full">Login</button>
+            <button type="submit" class="btn full auth-submit">Accedi</button>
         </form>
 
-        <p class="mt-12">Non hai un account? <a class="link" th:href="@{/register}">Registrati qui</a>.</p>
+        <p class="mt-12 auth-footer">Non hai un account? <a class="link" th:href="@{/register}">Registrati qui</a>.</p>
     </section>
 </main>
 </body>

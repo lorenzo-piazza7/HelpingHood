@@ -21,11 +21,15 @@ public class AnnuncioService {
     }
 
     public List<Annuncio> findByRichiedente(Long richiedenteId) {
-        return annuncioRepository.findByRichiedenteIdOrderByCreatedAtDesc(richiedenteId);
+        return annuncioRepository.findByRichiedenteIdAndVisibileTrueOrderByCreatedAtDesc(richiedenteId);
     }
 
     public Optional<Annuncio> findById(Long id) {
         return annuncioRepository.findById(id);
+    }
+
+    public Optional<Annuncio> findByIdAndRichiedente(Long id, Long richiedenteId) {
+        return annuncioRepository.findByIdAndRichiedenteId(id, richiedenteId);
     }
 
     public Annuncio save(Annuncio annuncio) {

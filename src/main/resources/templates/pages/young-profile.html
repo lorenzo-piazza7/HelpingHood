@@ -1,30 +1,119 @@
 <!DOCTYPE html>
 <html lang="it" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Profilo giovane')}"></head>
+<head th:replace="~{fragments/layout :: head('Il mio profilo giovane')}"></head>
 <body>
-<div th:replace="~{fragments/layout :: navbar('giovane')}"></div>
-<main class="container">
-    <section class="card">
-        <h1 th:text="${profile.name}"></h1>
-        <p th:text="${profile.age + ' anni · ' + profile.zone}"></p>
-        <p th:text="${profile.bio}"></p>
-        <div class="skills">
-            <span class="pill" th:each="skill : ${profile.skills}" th:text="${skill}"></span>
+<div th:replace="~{fragments/layout :: navbar('profilo-giovane')}"></div>
+<main class="container young-profile-page">
+    <section class="card young-profile-card">
+        <div class="young-profile-hero">
+            <div class="profile-avatar-wrap">
+                <div class="profile-avatar" aria-hidden="true">Foto</div>
+                <p class="muted-small profile-avatar-note">Icona profilo di esempio (non modificabile)</p>
+            </div>
+            <div class="young-profile-header">
+                <span class="auth-kicker">Profilo personale</span>
+                <h1 th:text="${utente.nome + ' ' + utente.cognome}">Nome Cognome</h1>
+                <p>Presenta il tuo profilo in modo professionale: aggiorna dati, disponibilita e preferenze di lavoro.</p>
+                <div class="profile-meta-chips">
+                    <span class="badge" th:text="${utente.citta != null ? utente.citta : 'Citta non indicata'}"></span>
+                    <span class="badge" th:text="${profilo.disponibile ? 'Disponibile ora' : 'Non disponibile'}"></span>
+                </div>
+            </div>
         </div>
-        <ul class="detail-list mt-12">
-            <li><strong>Disponibilità:</strong> <span th:text="${profile.availability}"></span></li>
-            <li><strong>Valutazione:</strong> <span th:text="${profile.rating + ' / 5'}"></span></li>
-            <li><strong>Lavori completati:</strong> <span th:text="${profile.jobsDone}"></span></li>
-        </ul>
-    </section>
 
-    <section>
-        <h2>Recensioni ricevute</h2>
-        <div class="grid cards-2">
-            <article class="card" th:each="review : ${reviews}">
-                <p><strong th:text="${review.author}"></strong></p>
-                <p th:text="${#strings.repeat('⭐', review.rating)}"></p>
-                <p th:text="${review.text}"></p>
+        <p class="success-msg" th:if="${successMessage}" th:text="${successMessage}"></p>
+        <p class="error-msg" th:if="${errorMessage}" th:text="${errorMessage}"></p>
+
+        <form class="young-profile-form professional-profile-form" method="post" th:action="@{/profilo/giovane}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="avatarUrl" th:value="${utente.avatarUrl}">
+
+            <div class="profile-edit-grid">
+                <section class="profile-edit-card">
+                    <p class="form-section-title">Dati account</p>
+                    <div class="form-grid">
+                        <label>Nome
+                            <input type="text" name="nome" th:value="${utente.nome}" required>
+                        </label>
+                        <label>Cognome
+                            <input type="text" name="cognome" th:value="${utente.cognome}" required>
+                        </label>
+                        <label>Email
+                            <input type="email" name="email" th:value="${utente.email}" required>
+                        </label>
+                        <label>Telefono
+                            <input type="tel" name="telefono" th:value="${utente.telefono}" required>
+                        </label>
+                        <label>Data di nascita
+                            <input type="date"
+                                   name="dataNascita"
+                                   th:value="${utente.dataNascita}"
+                                   th:min="${minDataNascita}"
+                                   th:max="${maxDataNascita}"
+                                   required>
+                        </label>
+                        <label>Citta
+                            <input type="text" name="citta" th:value="${utente.citta}" required>
+                        </label>
+                        <label>CAP
+                            <input type="text" name="cap" th:value="${utente.cap}">
+                        </label>
+                        <label class="full">Indirizzo
+                            <input type="text" name="indirizzo" th:value="${utente.indirizzo}" required>
+                        </label>
+                        <label class="full">Bio professionale
+                            <textarea name="bio" rows="4" th:text="${utente.bio}" placeholder="Racconta brevemente esperienza, punti di forza e disponibilita."></textarea>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="profile-edit-card">
+                    <p class="form-section-title">Profilo giovane</p>
+                    <div class="form-grid">
+                        <label>Anni
+                            <input type="number" name="anni" min="14" max="25" th:value="${profilo.anni}" required>
+                        </label>
+                        <label>Scuola o universita
+                            <input type="text" name="scuolaOUniversita" th:value="${profilo.scuolaOUniversita}">
+                        </label>
+                        <label>Anno studio
+                            <input type="text" name="annoStudio" th:value="${profilo.annoStudio}">
+                        </label>
+                        <label>Raggio (km)
+                            <input type="number" name="raggioKm" min="1" max="100" th:value="${profilo.raggioKm}" required>
+                        </label>
+                        <label>Mezzo di spostamento
+                            <input type="text" name="mezzoSpostamento" th:value="${profilo.mezzoSpostamento}" placeholder="piedi,bici,auto...">
+                        </label>
+                        <label>Ore settimana max
+                            <input type="number" name="oreSettimanaMax" min="1" max="80" th:value="${profilo.oreSettimanaMax}" required>
+                        </label>
+                        <label>Compenso minimo orario (EUR)
+                            <input type="number" step="0.01" min="0" name="compensoMinOra" th:value="${profilo.compensoMinOra}" required>
+                        </label>
+                        <label>Disponibile adesso
+                            <select name="disponibile" required>
+                                <option value="true" th:selected="${profilo.disponibile}">Si</option>
+                                <option value="false" th:selected="${!profilo.disponibile}">No</option>
+                            </select>
+                        </label>
+                    </div>
+                </section>
+            </div>
+
+            <div class="profile-actions">
+                <button type="submit" class="btn young-profile-submit">Salva modifiche</button>
+            </div>
+        </form>
+
+        <div class="profile-stats-grid">
+            <article class="stat">
+                <p class="muted-small">Punteggio medio</p>
+                <h3 th:text="${profilo.punteggioMedio != null ? profilo.punteggioMedio : '0.00'}"></h3>
+            </article>
+            <article class="stat">
+                <p class="muted-small">Lavori completati</p>
+                <h3 th:text="${profilo.nLavoriCompletati != null ? profilo.nLavoriCompletati : 0}"></h3>
             </article>
         </div>
     </section>

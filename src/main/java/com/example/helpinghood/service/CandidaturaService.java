@@ -31,4 +31,8 @@ public class CandidaturaService {
     public Candidatura save(Candidatura candidatura) {
         return candidaturaRepository.save(candidatura);
     }
+
+    public void delete(Candidatura candidatura) {
+        candidaturaRepository.delete(candidatura);
+    }
 }

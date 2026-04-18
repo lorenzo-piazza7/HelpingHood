@@ -5,6 +5,7 @@ import com.example.helpinghood.repository.RecensioneRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RecensioneService {
@@ -17,6 +18,10 @@ public class RecensioneService {
 
     public List<Recensione> findVisibleByDestinatario(Long destinatarioId) {
         return recensioneRepository.findByDestinatarioIdAndVisibileTrueOrderByCreatedAtDesc(destinatarioId);
+    }
+
+    public Optional<Recensione> findByLavoroAndAutore(Long lavoroId, Long autoreId) {
+        return recensioneRepository.findByLavoroIdAndAutoreId(lavoroId, autoreId);
     }
 
     public Recensione save(Recensione recensione) {

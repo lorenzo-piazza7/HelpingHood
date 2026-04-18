@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
+
 @Controller
 @ConditionalOnProperty(name = "app.auth.enabled", havingValue = "true", matchIfMissing = true)
 public class AuthController {
@@ -34,7 +36,8 @@ public class AuthController {
     }
 
     @GetMapping("/register")
-    public String registerPage() {
+    public String registerPage(Model model) {
+        populateBirthDateRange(model);
         return "pages/register";
     }
 
@@ -43,12 +46,28 @@ public class AuthController {
                            @RequestParam String cognome,
                            @RequestParam String email,
                            @RequestParam String password,
+                           @RequestParam String confermaPassword,
                            @RequestParam(defaultValue = "giovane") String ruolo,
+                           @RequestParam String telefono,
+                           @RequestParam String dataNascita,
+                           @RequestParam String citta,
+                           @RequestParam String indirizzo,
                            RedirectAttributes redirectAttributes,
                            Model model) {
 
         RegistrationService.RegistrationResult result = registrationService.register(
-                new RegistrationService.RegistrationRequest(nome, cognome, email, password, ruolo)
+                new RegistrationService.RegistrationRequest(
+                        nome,
+                        cognome,
+                        email,
+                        password,
+                        confermaPassword,
+                        ruolo,
+                        telefono,
+                        dataNascita,
+                        citta,
+                        indirizzo
+                )
         );
 
         if (!result.success()) {
@@ -57,10 +76,21 @@ public class AuthController {
             model.addAttribute("cognome", cognome);
             model.addAttribute("email", email);
             model.addAttribute("ruolo", ruolo);
+            model.addAttribute("telefono", telefono);
+            model.addAttribute("dataNascita", dataNascita);
+            model.addAttribute("citta", citta);
+            model.addAttribute("indirizzo", indirizzo);
+            populateBirthDateRange(model);
             return "pages/register";
         }
 
         redirectAttributes.addFlashAttribute("successMessage", result.message());
         return "redirect:/auth";
+    }
+
+    private void populateBirthDateRange(Model model) {
+        LocalDate today = LocalDate.now();
+        model.addAttribute("minDataNascita", today.minusYears(25));
+        model.addAttribute("maxDataNascita", today.minusYears(14));
     }
 }

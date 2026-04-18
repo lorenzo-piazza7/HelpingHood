@@ -159,7 +159,7 @@ CREATE TABLE annunci (
     luogo_note          VARCHAR(200) COMMENT 'es. vicino alla stazione, in zona Pescarenico',
     -- compenso
     compenso_tipo       ENUM('orario','fisso','volontariato') DEFAULT 'orario',
-    compenso_importo    DECIMAL(8,2) DEFAULT 0.00,
+    compenso_importo    DECIMAL(8,2) DEFAULT 5.00 CHECK (compenso_importo >= 5.00),
     valuta              CHAR(3)      DEFAULT 'EUR',
     -- pianificazione
     data_inizio         DATE,
@@ -246,7 +246,7 @@ CREATE TABLE recensioni (
     lavoro_id       INT UNSIGNED NOT NULL,
     autore_id       INT UNSIGNED NOT NULL COMMENT 'chi scrive la recensione',
     destinatario_id INT UNSIGNED NOT NULL COMMENT 'chi riceve la recensione',
-    voto            TINYINT UNSIGNED NOT NULL CHECK (voto BETWEEN 1 AND 5),
+    voto            TINYINT UNSIGNED NOT NULL CHECK (voto BETWEEN 0 AND 5),
     testo           TEXT,
     puntualita      TINYINT UNSIGNED CHECK (puntualita BETWEEN 1 AND 5),
     qualita         TINYINT UNSIGNED CHECK (qualita BETWEEN 1 AND 5),
@@ -389,17 +389,17 @@ INSERT INTO annunci (richiedente_id, categoria_id, titolo, descrizione, citta, c
    'Mio figlio ha difficoltà con frazioni e geometria. Cerco uno studente delle superiori disponibile due pomeriggi a settimana.',
    'Lecco','23900',45.8555,9.3960,'Centro storico','orario',10.00,'2026-04-22','16:00',1.5,'settimanale',1,'attivo',0),
 
-(7, 8, 'Volontari per evento "Lecco in Fiore" — 25 aprile',
+(7, 8, 'Supporto evento "Lecco in Fiore" - 25 aprile',
    'Il Comune di Lecco cerca 5 giovani per accoglienza visitatori, distribuzione materiali e supporto logistico durante la manifestazione.',
-   'Lecco','23900',45.8558,9.3966,'Piazza Manzoni','fisso',0.00,'2026-04-25','09:00',6,'una_tantum',5,'attivo',1),
+   'Lecco','23900',45.8558,9.3966,'Piazza Manzoni','fisso',5.00,'2026-04-25','09:00',6,'una_tantum',5,'attivo',1),
 
 (5, 3, 'Spesa al supermercato per venerdì',
    'Non riesco a camminare bene, ho bisogno di qualcuno che faccia la spesa per me con la lista che preparo io. Rimborso spese incluso.',
    'Lecco','23900',45.8570,9.3990,'Zona stazione','orario',7.00,'2026-04-19','10:00',2,'una_tantum',1,'attivo',1),
 
-(8, 8, 'Aiuto durante il Grest estivo — giugno/luglio',
+(8, 8, 'Aiuto durante il Grest estivo - giugno/luglio',
    'Cerchiamo ragazzi dai 16 anni in su per animare le attività del Grest 2026 presso la parrocchia. Esperienza formativa unica.',
-   'Lecco','23900',45.8548,9.3975,'Via Parrocchia 3','volontariato',0.00,'2026-06-15','08:30',6,'settimanale',4,'attivo',0),
+   'Lecco','23900',45.8548,9.3975,'Via Parrocchia 3','orario',6.00,'2026-06-15','08:30',6,'settimanale',4,'attivo',0),
 
 (6, 4, 'Aiuto con il nuovo smartphone a mia madre anziana',
    'Mia madre ha preso un nuovo telefono Android e non sa usarlo. Cerco un ragazzo paziente che le spieghi le basi in un paio d''ore.',

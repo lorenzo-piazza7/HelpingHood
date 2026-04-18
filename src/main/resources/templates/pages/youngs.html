@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Elenco giovani')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('giovani')}"></div>
+<main class="container">
+    <h1>Giovani sulla piattaforma</h1>
+    <p>Filtra i profili e apri tutti i dettagli, inclusi i commenti ricevuti.</p>
+
+    <section class="card filters" id="young-filters">
+        <label>Citta
+            <input id="filter-young-city" type="text" placeholder="Es. Lecco">
+        </label>
+        <label>Competenza
+            <select id="filter-young-skill">
+                <option value="">Tutte</option>
+                <option th:each="cat : ${categories}" th:value="${cat.nome}" th:text="${cat.nome}"></option>
+            </select>
+        </label>
+        <label>Eta massima
+            <input id="filter-young-age" type="number" min="14" max="25" step="1" placeholder="25">
+        </label>
+        <label>Rating minimo
+            <input id="filter-young-rating" type="number" min="0" max="5" step="0.1" placeholder="4.0">
+        </label>
+        <button type="button" class="btn btn-sm" id="clear-young-filters">Reset filtri</button>
+    </section>
+
+    <section class="grid cards-2" id="youngs-list">
+        <article class="card young-card" th:each="young : ${youngs}"
+                 th:attr="data-city=${young.zone != null ? #strings.toLowerCase(young.zone) : ''},
+                          data-skills=${#strings.toLowerCase(#strings.listJoin(young.skills, ','))},
+                          data-age=${young.age},
+                          data-rating=${young.rating}">
+            <div class="row-between">
+                <span class="pill" th:text="${young.zone}"></span>
+                <span class="pill success" th:text="${'⭐ ' + #numbers.formatDecimal(young.rating, 1, 1)}"></span>
+            </div>
+            <h3 th:text="${young.name}"></h3>
+            <p th:text="${young.age + ' anni · ' + young.bio}"></p>
+            <div class="skills">
+                <span class="pill" th:each="skill : ${young.skills}" th:text="${skill}"></span>
+            </div>
+            <div class="row-between mt-12">
+                <small th:text="${young.jobsDone + ' lavori completati'}"></small>
+                <a class="btn btn-sm" th:href="@{'/profili/giovani/' + ${young.id}}">Profilo e commenti</a>
+            </div>
+        </article>
+    </section>
+</main>
+</body>
+</html>
+
