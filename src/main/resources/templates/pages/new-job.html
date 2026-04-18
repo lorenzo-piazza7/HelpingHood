@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${isEdit} ? 'Modifica lavoro' : 'Crea lavoro')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('richiedente')}"></div>
+<main class="container narrow">
+    <section class="card">
+        <h1 th:text="${isEdit} ? 'Modifica lavoro' : 'Nuovo lavoro'"></h1>
+        <p th:text="${isEdit} ? 'Aggiorna i dettagli del lavoro selezionato.' : 'Compila i dettagli per trovare aiuto velocemente.'"></p>
+        <p class="error-msg" th:if="${errorMessage}" th:text="${errorMessage}"></p>
+
+        <form class="form-grid" method="post" th:action="${formAction}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <label>Titolo
+                <input name="titolo" type="text" placeholder="Es. Aiuto spesa venerdi mattina" required maxlength="150" th:value="${titolo}">
+            </label>
+            <label>Categoria
+                <select name="categoriaId" required>
+                    <option value="">Seleziona</option>
+                    <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.nome}" th:selected="${categoriaId == cat.id}"></option>
+                </select>
+            </label>
+            <label class="full">Descrizione
+                <textarea name="descrizione" rows="4" placeholder="Descrivi in modo concreto cosa ti serve" required th:text="${descrizione}"></textarea>
+            </label>
+            <label>Citta
+                <input name="citta" type="text" placeholder="Es. Lecco" required maxlength="100" th:value="${citta}">
+            </label>
+            <label>Indirizzo
+                <input name="indirizzo" type="text" placeholder="Es. Via Roma 12" maxlength="200" th:value="${indirizzo}">
+            </label>
+            <label class="full">Note luogo
+                <input name="luogoNote" type="text" placeholder="Es. citofono Bianchi, terzo piano" maxlength="200" th:value="${luogoNote}">
+            </label>
+            <label>Durata (ore)
+                <input name="durataOre" type="number" min="0.5" step="0.5" placeholder="2" th:value="${durataOre}">
+            </label>
+            <label>Compenso EUR/ora (minimo 5)
+                <input name="compensoImporto" type="number" min="5" step="1" placeholder="8" required th:value="${compensoImporto}">
+            </label>
+            <label>Giorno
+                <input name="dataInizio" type="date" th:value="${dataInizio}">
+            </label>
+            <label>Orario
+                <input name="oraInizio" type="time" th:value="${oraInizio}">
+            </label>
+            <label class="full checkbox-row">
+                <input name="urgente" type="checkbox" th:checked="${urgente}">
+                <span>Segna come urgente</span>
+            </label>
+            <div class="full job-form-actions">
+                <button type="submit" class="btn" th:text="${isEdit} ? 'Salva modifiche' : 'Pubblica lavoro'"></button>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

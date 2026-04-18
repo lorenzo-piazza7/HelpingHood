@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('I miei lavori')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('richiedente-lavori')}"></div>
+<main class="container">
+    <div class="row-between">
+        <div>
+            <h1>I miei lavori</h1>
+            <p>Visualizza tutti i lavori creati, aprili e modificali quando serve.</p>
+        </div>
+        <a class="btn" th:href="@{/annunci/nuovo}">Nuovo lavoro</a>
+    </div>
+
+    <p class="success-msg" th:if="${successMessage}" th:text="${successMessage}"></p>
+    <p class="error-msg" th:if="${errorMessage}" th:text="${errorMessage}"></p>
+
+    <section class="grid cards-2">
+        <article class="card" th:if="${#lists.isEmpty(createdJobs)}">
+            <h3>Nessun lavoro creato</h3>
+            <p>Inizia ora pubblicando il primo lavoro con compenso minimo 5 EUR/ora.</p>
+            <a class="btn btn-sm" th:href="@{/annunci/nuovo}">Crea lavoro</a>
+        </article>
+
+        <article class="card requester-job-card" th:each="job : ${createdJobs}">
+            <div class="row-between">
+                <span class="pill" th:text="${job.stato}"></span>
+                <span class="pill success" th:text="${'EUR ' + (job.compensoImporto != null ? job.compensoImporto : 0) + '/h'}"></span>
+            </div>
+            <h3><a class="link" th:href="@{'/annunci/' + ${job.id} + '/modifica'}" th:text="${job.titolo}"></a></h3>
+            <p th:text="${job.descrizione}"></p>
+            <p th:text="${job.citta + (job.indirizzo != null ? ' · ' + job.indirizzo : '')}"></p>
+            <div class="row-between mt-12">
+                <small th:text="${job.createdAt != null ? #temporals.format(job.createdAt, 'dd/MM/yyyy') : 'Appena creato'}"></small>
+                <a class="btn btn-sm" th:href="@{'/annunci/' + ${job.id} + '/modifica'}">Modifica</a>
+            </div>
+        </article>
+    </section>
+</main>
+</body>
+</html>
+

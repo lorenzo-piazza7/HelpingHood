@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Chat lavoro')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('chat')}"></div>
+<main class="container">
+	<section class="card work-chat-layout">
+		<aside class="work-chat-list">
+			<h2>Chat attive</h2>
+			<div class="work-chat-links" th:if="${!#lists.isEmpty(workChats)}">
+				<a class="work-chat-link"
+				   th:classappend="${chat.jobId == chatJobId} ? 'active'"
+				   th:each="chat : ${workChats}"
+				   th:href="@{'/chat/lavori/' + ${chat.jobId}}">
+					<strong th:text="${chat.jobTitle}"></strong>
+					<small th:text="${chat.counterpart}"></small>
+				</a>
+			</div>
+			<p th:if="${#lists.isEmpty(workChats)}" class="young-dashboard-empty">Nessuna chat lavoro disponibile.</p>
+			<a class="btn btn-sm btn-light" th:href="@{/chat}">Vai alla Chat AI</a>
+		</aside>
+
+		<section class="work-chat-thread">
+			<h1 th:text="${selectedJob.title}">Chat lavoro</h1>
+			<p th:text="${selectedJob.zone}"></p>
+
+			<div class="chat-box">
+				<div th:each="m : ${messages}" th:class="${m.mine} ? 'message mine' : 'message'">
+					<strong th:text="${m.sender}"></strong>
+					<p th:text="${m.text}"></p>
+					<small th:text="${m.time}"></small>
+				</div>
+			</div>
+
+			<div class="chat-input">
+				<input type="text" placeholder="Invio messaggi non ancora disponibile da questa schermata">
+				<button type="button" class="btn btn-sm" disabled>Invia</button>
+			</div>
+		</section>
+	</section>
+</main>
+</body>
+</html>
+

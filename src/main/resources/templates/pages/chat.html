@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Chat AI')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('chat')}"></div>
+<main class="container narrow ai-chat-page">
+    <section class="card ai-chat-card">
+        <div class="row-between">
+            <div>
+                <h1 th:text="${chatTitle}">Chat AI</h1>
+                <p th:text="${chatSubtitle}">Assistente rapido per suggerimenti.</p>
+            </div>
+            <span class="pill success">Mockup</span>
+        </div>
+
+        <div class="chat-box ai-chat-box">
+            <div th:each="m : ${messages}" th:class="${m.mine} ? 'message mine' : 'message'">
+                <strong th:text="${m.sender}"></strong>
+                <p th:text="${m.text}"></p>
+                <small th:text="${m.time}"></small>
+            </div>
+        </div>
+
+        <div class="chat-input ai-chat-input">
+            <input type="text" th:placeholder="${chatPlaceholder}">
+            <button type="button" class="btn btn-sm" disabled>Invia</button>
+        </div>
+    </section>
+</main>
+</body>
+</html>

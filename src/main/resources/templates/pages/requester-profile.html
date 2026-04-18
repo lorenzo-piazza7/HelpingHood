@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Il mio profilo richiedente')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('profilo-richiedente')}"></div>
+<main class="container young-profile-page requester-profile-page">
+    <section class="card young-profile-card requester-profile-card">
+        <div class="young-profile-hero">
+            <div class="profile-avatar-wrap">
+                <div class="profile-avatar" aria-hidden="true">Profilo</div>
+                <p class="muted-small profile-avatar-note">Profilo richiedente</p>
+            </div>
+            <div class="young-profile-header">
+                <span class="auth-kicker">Profilo richiedente</span>
+                <h1 th:text="${utente.nome + ' ' + utente.cognome}">Nome Cognome</h1>
+                <p>Gestisci i tuoi dati personali e il profilo pubblico usato dai giovani per conoscerti meglio.</p>
+                <div class="profile-meta-chips">
+                    <span class="badge" th:text="${utente.citta != null ? utente.citta : 'Citta non indicata'}"></span>
+                    <span class="badge" th:text="${profilo.tipo != null ? profilo.tipo : 'privato'}"></span>
+                </div>
+            </div>
+        </div>
+
+        <p class="success-msg" th:if="${successMessage}" th:text="${successMessage}"></p>
+        <p class="error-msg" th:if="${errorMessage}" th:text="${errorMessage}"></p>
+
+        <form class="young-profile-form professional-profile-form requester-profile-form" method="post" th:action="@{/profilo/richiedente}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <div class="profile-edit-grid">
+                <section class="profile-edit-card">
+                    <p class="form-section-title">Dati account</p>
+                    <div class="form-grid requester-form-grid">
+                        <label>Nome
+                            <input type="text" name="nome" th:value="${utente.nome}" required>
+                        </label>
+                        <label>Cognome
+                            <input type="text" name="cognome" th:value="${utente.cognome}" required>
+                        </label>
+                        <label>Email
+                            <input type="email" name="email" th:value="${utente.email}" required>
+                        </label>
+                        <label>Telefono
+                            <input type="tel" name="telefono" th:value="${utente.telefono}" required>
+                        </label>
+                        <label>Data di nascita
+                            <input type="date"
+                                   name="dataNascita"
+                                   th:value="${utente.dataNascita}"
+                                   th:min="${minDataNascita}"
+                                   th:max="${maxDataNascita}">
+                        </label>
+                        <label>Citta
+                            <input type="text" name="citta" th:value="${utente.citta}" required>
+                        </label>
+                        <label>CAP
+                            <input type="text" name="cap" th:value="${utente.cap}">
+                        </label>
+                        <label class="full">Indirizzo
+                            <input type="text" name="indirizzo" th:value="${utente.indirizzo}" required>
+                        </label>
+                        <label class="full">Bio
+                            <textarea name="bio" rows="4" th:text="${utente.bio}" placeholder="Racconta brevemente chi sei e cosa cerchi."></textarea>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="profile-edit-card">
+                    <p class="form-section-title">Profilo richiedente</p>
+                    <div class="form-grid requester-form-grid">
+                        <label class="full">Tipo profilo
+                            <select name="tipo" required>
+                                <option value="privato" th:selected="${profilo.tipo == null || profilo.tipo == 'privato'}">Privato</option>
+                                <option value="organizzazione" th:selected="${profilo.tipo == 'organizzazione'}">Organizzazione</option>
+                            </select>
+                        </label>
+                        <label class="full">Nome organizzazione (opzionale)
+                            <input type="text" name="nomeOrg" th:value="${profilo.nomeOrg}">
+                        </label>
+                        <label class="full">Sito web (opzionale)
+                            <input type="url" name="sitoWeb" th:value="${profilo.sitoWeb}" placeholder="https://example.it">
+                        </label>
+                    </div>
+                </section>
+            </div>
+
+            <div class="profile-actions">
+                <button type="submit" class="btn young-profile-submit">Salva modifiche</button>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>
+

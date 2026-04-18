@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Reputazione')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('giovane')}"></div>
+<main class="container">
+    <h1>Reputazione e fiducia</h1>
+    <p>La community cresce grazie a feedback chiari e utili.</p>
+
+    <section class="grid cards-3">
+        <article class="card" th:each="profile : ${profiles}">
+            <h3 th:text="${profile.name}"></h3>
+            <p th:text="${profile.zone}"></p>
+            <strong th:text="${'⭐ ' + profile.rating + ' · ' + profile.jobsDone + ' lavori'}"></strong>
+        </article>
+    </section>
+
+    <section class="grid cards-2">
+        <article class="card" th:each="review : ${reviews}">
+            <p><strong th:text="${review.author}"></strong> → <span th:text="${review.target}"></span></p>
+            <p th:text="${#strings.repeat('⭐', review.rating)}"></p>
+            <p th:text="${review.text}"></p>
+        </article>
+    </section>
+</main>
+</body>
+</html>

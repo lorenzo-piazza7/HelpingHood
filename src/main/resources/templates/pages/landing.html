@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dalla tua zona, per la tua zona')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('home')}"></div>
+<main class="container">
+    <section class="hero">
+        <span class="badge">Hackathon benessere digitale</span>
+        <h1>Metti in gioco il tuo tempo</h1>
+        <p>Trova un lavoretto vicino a te e trasforma il digitale in esperienze vere nel tuo quartiere.</p>
+        <div class="hero-actions">
+            <a class="btn" th:href="@{/lavori}">Trova un lavoretto vicino a te</a>
+            <a class="btn btn-light" th:if="${canCreateJob}" th:href="@{/annunci/nuovo}">Pubblica una richiesta</a>
+        </div>
+    </section>
+
+    <section class="grid cards-3">
+        <article class="card" th:each="cat : ${categories}">
+            <div class="row-between">
+                <h3 th:text="${cat.icon + ' ' + cat.name}"></h3>
+                <span class="dot" th:style="'background:' + ${cat.colorHex}"></span>
+            </div>
+            <p>Piccoli lavori, esperienza vera, relazioni di fiducia.</p>
+        </article>
+    </section>
+
+    <section>
+        <div class="row-between">
+            <h2>Vicini a te</h2>
+            <a class="link" th:href="@{/lavori}">Vedi tutti</a>
+        </div>
+        <div class="grid cards-3">
+            <article class="card" th:each="job : ${nearbyJobs}">
+                <div class="row-between">
+                    <span class="pill" th:text="${job.category}"></span>
+                    <span class="pill success" th:text="${job.distanceKm + ' km'}"></span>
+                </div>
+                <h3 th:text="${job.title}"></h3>
+                <p th:text="${job.description}"></p>
+                <div class="row-between mt-12">
+                    <small th:text="${#temporals.format(job.day, 'dd/MM') + ' · ' + #temporals.format(job.time, 'HH:mm')}"></small>
+                    <a class="btn btn-sm" th:href="@{'/lavori/' + ${job.id}}">Dettaglio</a>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>

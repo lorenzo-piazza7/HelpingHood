@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Chat lavori')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: navbar('chat')}"></div>
+<main class="container">
+    <section class="card">
+        <div class="row-between">
+            <div>
+                <h1>Chat dei lavori</h1>
+                <p>Ogni lavoro attivo ha una conversazione dedicata tra richiedente e giovane.</p>
+            </div>
+            <a class="btn btn-sm btn-light" th:href="@{/chat}">Apri Chat AI</a>
+        </div>
+
+        <p th:if="${#lists.isEmpty(workChats)}" class="young-dashboard-empty">Non hai ancora chat lavoro attive.</p>
+
+        <div class="grid cards-2" th:if="${!#lists.isEmpty(workChats)}">
+            <article class="card young-dashboard-item" th:each="chat : ${workChats}">
+                <div class="row-between">
+                    <span class="pill" th:text="${chat.counterpart}"></span>
+                    <span class="pill danger" th:if="${chat.unreadCount > 0}" th:text="${chat.unreadCount + ' non letti'}"></span>
+                    <small th:if="${chat.unreadCount == 0}" th:text="${chat.lastUpdated}"></small>
+                </div>
+                <h3 th:text="${chat.jobTitle}"></h3>
+                <p><strong>Stato adesione:</strong> <span th:text="${chat.applicationStatus}"></span></p>
+                <p th:text="${chat.lastMessage}"></p>
+                <div class="row-between mt-12">
+                    <small th:text="${chat.lastUpdated}"></small>
+                    <a class="btn btn-sm" th:href="@{'/chat/lavori/' + ${chat.jobId}}">Apri chat</a>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+</body>
+</html>
+
+

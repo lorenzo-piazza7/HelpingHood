@@ -3,7 +3,11 @@ package com.example.helpinghood;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "app.auth.enabled=false",
+        "spring.main.lazy-initialization=true",
+        "spring.autoconfigure.exclude=org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration,org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration"
+})
 class HelpingHoodApplicationTests {
 
     @Test

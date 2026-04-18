@@ -1,0 +1,96 @@
+package com.example.helpinghood.controller.auth;
+
+import com.example.helpinghood.service.auth.RegistrationService;
+import org.springframework.security.core.Authentication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.time.LocalDate;
+
+@Controller
+@ConditionalOnProperty(name = "app.auth.enabled", havingValue = "true", matchIfMissing = true)
+public class AuthController {
+
+    private final RegistrationService registrationService;
+
+    public AuthController(RegistrationService registrationService) {
+        this.registrationService = registrationService;
+    }
+
+    @GetMapping("/")
+    public String root() {
+        return "redirect:/auth";
+    }
+
+    @GetMapping("/auth")
+    public String loginPage(Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
+            return "redirect:/home";
+        }
+        return "pages/auth";
+    }
+
+    @GetMapping("/register")
+    public String registerPage(Model model) {
+        populateBirthDateRange(model);
+        return "pages/register";
+    }
+
+    @PostMapping("/register")
+    public String register(@RequestParam String nome,
+                           @RequestParam String cognome,
+                           @RequestParam String email,
+                           @RequestParam String password,
+                           @RequestParam String confermaPassword,
+                           @RequestParam(defaultValue = "giovane") String ruolo,
+                           @RequestParam String telefono,
+                           @RequestParam String dataNascita,
+                           @RequestParam String citta,
+                           @RequestParam String indirizzo,
+                           RedirectAttributes redirectAttributes,
+                           Model model) {
+
+        RegistrationService.RegistrationResult result = registrationService.register(
+                new RegistrationService.RegistrationRequest(
+                        nome,
+                        cognome,
+                        email,
+                        password,
+                        confermaPassword,
+                        ruolo,
+                        telefono,
+                        dataNascita,
+                        citta,
+                        indirizzo
+                )
+        );
+
+        if (!result.success()) {
+            model.addAttribute("errorMessage", result.message());
+            model.addAttribute("nome", nome);
+            model.addAttribute("cognome", cognome);
+            model.addAttribute("email", email);
+            model.addAttribute("ruolo", ruolo);
+            model.addAttribute("telefono", telefono);
+            model.addAttribute("dataNascita", dataNascita);
+            model.addAttribute("citta", citta);
+            model.addAttribute("indirizzo", indirizzo);
+            populateBirthDateRange(model);
+            return "pages/register";
+        }
+
+        redirectAttributes.addFlashAttribute("successMessage", result.message());
+        return "redirect:/auth";
+    }
+
+    private void populateBirthDateRange(Model model) {
+        LocalDate today = LocalDate.now();
+        model.addAttribute("minDataNascita", today.minusYears(25));
+        model.addAttribute("maxDataNascita", today.minusYears(14));
+    }
+}
