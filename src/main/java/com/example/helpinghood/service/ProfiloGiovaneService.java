@@ -16,10 +16,12 @@ public class ProfiloGiovaneService {
     }
 
     public Optional<ProfiloGiovane> findByUtenteId(Long utenteId) {
+        // Recupera il profilo applicativo associato all'utente autenticato.
         return profiloGiovaneRepository.findByUtenteId(utenteId);
     }
 
     public ProfiloGiovane save(ProfiloGiovane profiloGiovane) {
+        // Salvataggio unico usato sia in creazione profilo sia in aggiornamento dati/reputazione.
         return profiloGiovaneRepository.save(profiloGiovane);
     }
 }

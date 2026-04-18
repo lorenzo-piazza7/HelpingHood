@@ -9,6 +9,7 @@
         <p th:text="${isEdit} ? 'Aggiorna i dettagli del lavoro selezionato.' : 'Compila i dettagli per trovare aiuto velocemente.'"></p>
         <p class="error-msg" th:if="${errorMessage}" th:text="${errorMessage}"></p>
 
+        <!-- Form unico riusato sia in creazione sia in modifica annuncio. -->
         <form class="form-grid" method="post" th:action="${formAction}">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 

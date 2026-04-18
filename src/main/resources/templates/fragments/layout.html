@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it" xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="head(title)">
+    <!-- Head condiviso: font, stile e script globali dell'app. -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title} + ' | HelpingHood'">HelpingHood</title>
@@ -13,6 +14,7 @@
 </head>
 <body>
 <nav th:fragment="navbar(active)" class="top-nav">
+    <!-- Menu contestuale: voci mostrate in base al ruolo dell'utente. -->
     <a class="logo" th:href="@{/home}">HelpingHood</a>
     <div class="nav-links" th:if="${active != 'auth' && active != 'register'}">
         <a th:if="${isGiovane}" th:classappend="${active == 'lavori'} ? 'active'" th:href="@{/lavori}">Lavori</a>

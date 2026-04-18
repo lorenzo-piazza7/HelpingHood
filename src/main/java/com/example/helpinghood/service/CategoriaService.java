@@ -16,6 +16,7 @@ public class CategoriaService {
     }
 
     public List<Categoria> findAll() {
+        // Espone l'elenco categorie per filtri/form lato UI.
         return categoriaRepository.findAll();
     }
 }

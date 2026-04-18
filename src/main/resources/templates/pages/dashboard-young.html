@@ -4,9 +4,11 @@
 <body>
 <div th:replace="~{fragments/layout :: navbar('giovane')}"></div>
 <main class="container young-dashboard-page">
+    <!-- Header personale della dashboard giovane. -->
     <h1>Ciao <span th:text="${profile.name}"></span> 👋</h1>
     <p>Trova opportunita vicine, monitora le candidature e tieni attive le conversazioni.</p>
 
+    <!-- KPI principali mostrati in alto. -->
     <section class="stats-grid">
         <article class="stat"><h3 th:text="${stats.nearbyJobs}"></h3><p>lavoretti vicini</p></article>
         <article class="stat"><h3 th:text="${stats.applications}"></h3><p>candidature inviate</p></article>
@@ -14,6 +16,20 @@
         <article class="stat"><h3 th:text="${stats.reputation}"></h3><p>reputazione</p></article>
     </section>
 
+    <!-- Risorse fiscali utili (link esterni). -->
+    <section class="young-dashboard-section-card tax-help-card">
+        <div class="row-between">
+            <h2>Guida 730 per giovani</h2>
+            <span class="pill">Supporto fiscale</span>
+        </div>
+        <p class="tax-help-intro">Una mini area utile per orientarti tra i passaggi del 730 con risorse semplici e affidabili.</p>
+        <div class="tax-help-links">
+            <a class="btn btn-sm" href="https://chatgpt.com/share/69e2c23c-84cc-83eb-8d66-82ebb87b0f8b" target="_blank" rel="noopener noreferrer">Apri guida ChatGPT al 730</a>
+            <a class="btn btn-sm btn-light" href="https://www.agenziaentrate.gov.it/portale/730-2025/quando-e-come-presentare-il-730" target="_blank" rel="noopener noreferrer">Vai al sito Agenzia Entrate</a>
+        </div>
+    </section>
+
+    <!-- Opportunita vicine suggerite al giovane. -->
     <section class="young-dashboard-section-card">
         <div class="row-between">
             <h2>Lavori attivi nelle vicinanze</h2>
@@ -39,6 +55,7 @@
         </div>
     </section>
 
+    <!-- Storico candidature inviate dal giovane. -->
     <section class="young-dashboard-section-card">
         <div class="row-between">
             <h2>Richieste inviate</h2>
@@ -61,6 +78,7 @@
         </div>
     </section>
 
+    <!-- Conversazioni attive collegate ai lavori aderiti. -->
     <section class="young-dashboard-section-card">
         <div class="row-between">
             <h2>Chat attive sui lavori</h2>

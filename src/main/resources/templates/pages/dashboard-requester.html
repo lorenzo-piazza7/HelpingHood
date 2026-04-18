@@ -4,6 +4,7 @@
 <body>
 <div th:replace="~{fragments/layout :: navbar('richiedente')}"></div>
 <main class="container requester-dashboard-page">
+    <!-- Header con azioni principali: esplora giovani e crea nuovo lavoro. -->
     <div class="row-between">
         <div>
             <h1>Ciao <span th:text="${displayName}"></span> 👋</h1>
@@ -15,12 +16,14 @@
         </div>
     </div>
 
+    <!-- Metriche aggregate della dashboard richiedente. -->
     <section class="stats-grid">
         <article class="stat"><h3 th:text="${stats.nearbyJobs}"></h3><p>lavori attivi</p></article>
         <article class="stat"><h3 th:text="${stats.applications}"></h3><p>giovani attivi</p></article>
         <article class="stat"><h3 th:text="${stats.activeChats}"></h3><p>chat con giovani</p></article>
     </section>
 
+    <!-- Directory rapida dei giovani geograficamente vicini. -->
     <section class="young-dashboard-section-card">
         <div class="row-between">
             <h2>Giovani vicino a te</h2>
@@ -46,6 +49,7 @@
         </div>
     </section>
 
+    <!-- Giovani gia coinvolti nei lavori del richiedente. -->
     <section class="young-dashboard-section-card">
         <div class="row-between">
             <h2>Giovani attivi nei tuoi lavori</h2>
@@ -68,6 +72,7 @@
         </div>
     </section>
 
+    <!-- Conversazioni lavoro in corso con i giovani. -->
     <section class="young-dashboard-section-card">
         <div class="row-between">
             <h2>Chat con i giovani</h2>
@@ -91,6 +96,7 @@
         </div>
     </section>
 
+    <!-- Riepilogo annunci creati dal richiedente con accesso modifica. -->
     <section class="young-dashboard-section-card">
         <div class="row-between">
             <h2>I tuoi lavori creati</h2>

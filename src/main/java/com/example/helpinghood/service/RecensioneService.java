@@ -17,14 +17,17 @@ public class RecensioneService {
     }
 
     public List<Recensione> findVisibleByDestinatario(Long destinatarioId) {
+        // Le pagine pubbliche usano solo feedback marcati come visibili.
         return recensioneRepository.findByDestinatarioIdAndVisibileTrueOrderByCreatedAtDesc(destinatarioId);
     }
 
     public Optional<Recensione> findByLavoroAndAutore(Long lavoroId, Long autoreId) {
+        // Permette un solo feedback per coppia (lavoro, autore) nel flusso di aggiornamento recensione.
         return recensioneRepository.findByLavoroIdAndAutoreId(lavoroId, autoreId);
     }
 
     public Recensione save(Recensione recensione) {
+        // Salvataggio usato sia in creazione sia in modifica.
         return recensioneRepository.save(recensione);
     }
 }

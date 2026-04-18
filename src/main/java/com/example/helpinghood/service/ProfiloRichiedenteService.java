@@ -16,10 +16,12 @@ public class ProfiloRichiedenteService {
     }
 
     public Optional<ProfiloRichiedente> findByUtenteId(Long utenteId) {
+        // Recupera il profilo del richiedente da mostrare/modificare in dashboard.
         return profiloRichiedenteRepository.findByUtenteId(utenteId);
     }
 
     public ProfiloRichiedente save(ProfiloRichiedente profiloRichiedente) {
+        // Persistenza centralizzata del profilo richiedente.
         return profiloRichiedenteRepository.save(profiloRichiedente);
     }
 }
