@@ -4,12 +4,14 @@
 <body>
 <div th:replace="~{fragments/layout :: navbar('register')}"></div>
 <main class="container narrow">
+    <!-- Form onboarding: crea account e imposta il ruolo iniziale. -->
     <section class="card register-card">
         <h1>Crea il tuo account</h1>
         <p class="register-intro">Compila tutti i campi richiesti per completare la registrazione.</p>
 
         <p class="error-msg" th:if="${errorMessage}" th:text="${errorMessage}"></p>
 
+        <!-- Blocchi separati per migliorare la compilazione guidata del form. -->
         <form class="form-grid register-form" method="post" th:action="@{/register}">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 

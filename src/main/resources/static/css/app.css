@@ -9,6 +9,7 @@
     --danger: #d84315;
 }
 
+/* Stili base condivisi (tipografia, layout, componenti generici). */
 * { box-sizing: border-box; }
 body {
     margin: 0;
@@ -347,6 +348,7 @@ input, select, textarea {
     position: relative;
 }
 
+/* Dashboard: varianti visuali per card, stati e blocchi contestuali. */
 .requester-dashboard-page {
     position: relative;
 }
@@ -386,6 +388,22 @@ input, select, textarea {
     border-radius: 14px;
     border-color: #d6e8d8;
     background: linear-gradient(180deg, #fcfffc, #f7fbf7);
+}
+
+.tax-help-card {
+    border-color: #c5dfc9;
+    background: linear-gradient(145deg, #fdfefd, #f2f9f3);
+}
+
+.tax-help-intro {
+    margin-bottom: .8rem;
+    max-width: 760px;
+}
+
+.tax-help-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem;
 }
 
 .requester-job-card,
@@ -530,6 +548,7 @@ input, select, textarea {
     position: relative;
 }
 
+/* Profili: hero, form professionali e micro-componenti statistiche. */
 .young-profile-page::before {
     content: "";
     position: absolute;

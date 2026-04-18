@@ -5,6 +5,7 @@
 <div th:replace="~{fragments/layout :: navbar('profilo-richiedente')}"></div>
 <main class="container young-profile-page requester-profile-page">
     <section class="card young-profile-card requester-profile-card">
+        <!-- Hero anagrafico e metadati rapidi del richiedente. -->
         <div class="young-profile-hero">
             <div class="profile-avatar-wrap">
                 <div class="profile-avatar" aria-hidden="true">Profilo</div>
@@ -24,6 +25,7 @@
         <p class="success-msg" th:if="${successMessage}" th:text="${successMessage}"></p>
         <p class="error-msg" th:if="${errorMessage}" th:text="${errorMessage}"></p>
 
+        <!-- Form suddiviso in: dati account e dati profilo richiedente. -->
         <form class="young-profile-form professional-profile-form requester-profile-form" method="post" th:action="@{/profilo/richiedente}">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 

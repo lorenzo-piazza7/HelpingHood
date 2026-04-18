@@ -7,6 +7,7 @@
     <h1>Elenco lavoretti</h1>
     <p>Dalla tua zona, per la tua zona.</p>
 
+    <!-- Filtri lato client gestiti da app.js tramite data-attributes delle card. -->
     <section class="card filters">
         <label>Categoria
             <select id="filter-category">
@@ -26,6 +27,7 @@
         <button type="button" class="btn btn-sm" id="clear-filters">Reset filtri</button>
     </section>
 
+    <!-- Risultati annunci con azioni diverse in base al ruolo autenticato. -->
     <section class="grid cards-2" id="jobs-list">
         <article class="card job-card" th:each="job : ${jobs}"
                  th:with="isMine=${isGiovaneViewer and myRequestedJobIds.contains(job.id)},isTaken=${job.status != null and job.status != 'attivo'}"

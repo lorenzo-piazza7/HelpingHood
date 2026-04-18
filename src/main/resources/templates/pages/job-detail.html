@@ -8,6 +8,7 @@
         <p class="success-msg" th:if="${successMessage}" th:text="${successMessage}"></p>
         <p class="error-msg" th:if="${errorMessage}" th:text="${errorMessage}"></p>
 
+        <!-- Hero: sintetizza categoria, stato e descrizione dell'annuncio. -->
         <div class="job-detail-hero">
             <div>
                 <div class="row-gap">
@@ -27,6 +28,7 @@
             </div>
         </div>
 
+        <!-- Schede di dettaglio separate per luogo, pianificazione e compenso. -->
         <div class="job-detail-info-grid">
             <article class="job-detail-info-card">
                 <h3>Luogo</h3>
@@ -48,6 +50,7 @@
             </article>
         </div>
 
+        <!-- CTA contestuali: candidatura e accesso rapido alle chat. -->
         <div class="row-gap">
             <form method="post" th:if="${isGiovaneViewer}" th:action="@{'/lavori/' + ${annuncio.id} + '/richiedi'}" class="inline-form">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">

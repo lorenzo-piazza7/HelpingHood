@@ -21,18 +21,22 @@ public class UtenteService {
     }
 
     public Optional<Utente> findActiveByEmail(String email) {
+        // Utilizzato per risolvere l'utente corrente ignorando account disattivati.
         return utenteRepository.findByEmailIgnoreCaseAndAttivoTrue(email);
     }
 
     public List<Utente> findByRuolo(String ruolo) {
+        // Lista utenti attivi ordinata per UI e directory.
         return utenteRepository.findByRuoloAndAttivoTrueOrderByCognomeAscNomeAsc(ruolo);
     }
 
     public boolean existsByEmail(String email) {
+        // Controllo unicita email nei form di registrazione e aggiornamento profilo.
         return utenteRepository.existsByEmailIgnoreCase(email);
     }
 
     public Utente save(Utente utente) {
+        // Persistenza centralizzata dell'entita utente.
         return utenteRepository.save(utente);
     }
 }
