@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
@@ -90,6 +91,8 @@ public class RegistrationService {
         utente.setDataNascita(birthDate);
         utente.setCitta(request.citta().trim());
         utente.setIndirizzo(request.indirizzo().trim());
+        utente.setLatitudine(parseCoordinate(request.latitudine()));
+        utente.setLongitudine(parseCoordinate(request.longitudine()));
         utente.setAttivo(true);
         utente.setVerificato(false);
 
@@ -114,6 +117,7 @@ public class RegistrationService {
         if (rawRole == null) {
             return null;
         }
+
         // Manteniamo esplicitamente una whitelist per evitare ruoli arbitrari dal client.
         String role = rawRole.trim().toLowerCase(Locale.ROOT);
         if (ROLE_GIOVANE.equals(role)) {
@@ -125,6 +129,17 @@ public class RegistrationService {
         return null;
     }
 
+    private BigDecimal parseCoordinate(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+        try {
+            return new BigDecimal(value.trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
     public record RegistrationRequest(String nome,
                                       String cognome,
                                       String email,
@@ -134,7 +149,9 @@ public class RegistrationService {
                                       String telefono,
                                       String dataNascita,
                                       String citta,
-                                      String indirizzo) {
+                                      String indirizzo,
+                                      String latitudine,
+                                      String longitudine) {
     }
 
     public record RegistrationResult(boolean success, String message) {

@@ -12,8 +12,10 @@
         <p class="error-msg" th:if="${errorMessage}" th:text="${errorMessage}"></p>
 
         <!-- Blocchi separati per migliorare la compilazione guidata del form. -->
-        <form class="form-grid register-form" method="post" th:action="@{/register}">
+        <form class="form-grid register-form" method="post" th:action="@{/register}" data-geocode-location>
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="latitudine" th:value="${latitudine}">
+            <input type="hidden" name="longitudine" th:value="${longitudine}">
 
             <p class="form-section-title full">Dati anagrafici</p>
             <label>Nome

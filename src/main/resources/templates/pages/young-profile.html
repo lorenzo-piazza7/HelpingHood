@@ -26,9 +26,11 @@
         <p class="error-msg" th:if="${errorMessage}" th:text="${errorMessage}"></p>
 
         <!-- Form professionale del giovane (account + preferenze lavoro). -->
-        <form class="young-profile-form professional-profile-form" method="post" th:action="@{/profilo/giovane}">
+        <form class="young-profile-form professional-profile-form" method="post" th:action="@{/profilo/giovane}" data-geocode-location>
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <input type="hidden" name="avatarUrl" th:value="${utente.avatarUrl}">
+            <input type="hidden" name="latitudine" th:value="${utente.latitudine}">
+            <input type="hidden" name="longitudine" th:value="${utente.longitudine}">
 
             <div class="profile-edit-grid">
                 <section class="profile-edit-card">

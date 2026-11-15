@@ -55,6 +55,8 @@ public class AuthController {
                            @RequestParam String dataNascita,
                            @RequestParam String citta,
                            @RequestParam String indirizzo,
+                           @RequestParam(required = false) String latitudine,
+                           @RequestParam(required = false) String longitudine,
                            RedirectAttributes redirectAttributes,
                            Model model) {
 
@@ -70,7 +72,9 @@ public class AuthController {
                         telefono,
                         dataNascita,
                         citta,
-                        indirizzo
+                        indirizzo,
+                        latitudine,
+                        longitudine
                 )
         );
 
@@ -85,6 +89,8 @@ public class AuthController {
             model.addAttribute("dataNascita", dataNascita);
             model.addAttribute("citta", citta);
             model.addAttribute("indirizzo", indirizzo);
+            model.addAttribute("latitudine", latitudine);
+            model.addAttribute("longitudine", longitudine);
             populateBirthDateRange(model);
             return "pages/register";
         }

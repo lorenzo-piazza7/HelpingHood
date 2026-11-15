@@ -676,6 +676,8 @@ public class ViewController {
                                             @RequestParam String indirizzo,
                                             @RequestParam(required = false) String bio,
                                             @RequestParam(required = false) String avatarUrl,
+                                            @RequestParam(required = false) String latitudine,
+                                            @RequestParam(required = false) String longitudine,
                                             @RequestParam Integer anni,
                                             @RequestParam(required = false) String scuolaOUniversita,
                                             @RequestParam(required = false) String annoStudio,
@@ -772,6 +774,19 @@ public class ViewController {
         utente.setIndirizzo(indirizzo.trim());
         utente.setBio(bio == null ? null : bio.trim());
         utente.setAvatarUrl(avatarUrl == null ? null : avatarUrl.trim());
+        BigDecimal latitude = parseBigDecimal(latitudine);
+        BigDecimal longitude = parseBigDecimal(longitudine);
+        List<String> coordinateErrors = new ArrayList<>();
+        validateDecimalInput(coordinateErrors, latitudine, latitude, "Latitudine");
+        validateDecimalInput(coordinateErrors, longitudine, longitude, "Longitudine");
+        if (!coordinateErrors.isEmpty()) {
+            model.addAttribute("errorMessage", String.join(" ", coordinateErrors));
+            bindYoungProfileModel(model, utente, profilo);
+            populateBirthDateRange(model);
+            return "pages/young-profile";
+        }
+        utente.setLatitudine(latitude);
+        utente.setLongitudine(longitude);
 
         profilo.setUtenteId(utente.getId());
         profilo.setAnni(anni);

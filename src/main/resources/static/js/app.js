@@ -19,6 +19,47 @@ document.addEventListener('DOMContentLoaded', () => {
         return Number.isFinite(number) && number >= min && number <= max;
     };
 
+    document.querySelectorAll('form[data-geocode-location]').forEach(form => {
+        form.addEventListener('submit', async event => {
+            const latitudeInput = form.querySelector('[name="latitudine"]');
+            const longitudeInput = form.querySelector('[name="longitudine"]');
+            if (!latitudeInput || !longitudeInput
+                || form.dataset.geocoding === 'true') {
+                return;
+            }
+
+            event.preventDefault();
+            form.dataset.geocoding = 'true';
+            latitudeInput.value = '';
+            longitudeInput.value = '';
+            const city = form.querySelector('[name="citta"]')?.value?.trim();
+            const address = form.querySelector('[name="indirizzo"]')?.value?.trim();
+            const cap = form.querySelector('[name="cap"]')?.value?.trim();
+            const query = [address, cap, city].filter(Boolean).join(', ');
+
+            if (query) {
+                try {
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=it&q=${encodeURIComponent(query)}`,
+                        { headers: { Accept: 'application/json' } }
+                    );
+                    if (response.ok) {
+                        const results = await response.json();
+                        const result = results[0];
+                        if (result && validCoordinate(result.lat, -90, 90) && validCoordinate(result.lon, -180, 180)) {
+                            latitudeInput.value = Number(result.lat).toFixed(7);
+                            longitudeInput.value = Number(result.lon).toFixed(7);
+                        }
+                    }
+                } catch (error) {
+                    // Il salvataggio dei dati testuali non deve essere bloccato da un servizio esterno.
+                }
+            }
+
+            HTMLFormElement.prototype.submit.call(form);
+        });
+    });
+
     const jobsMap = document.getElementById('jobs-map');
     if (jobsMap && window.L) {
         const markers = Array.from(document.querySelectorAll('.job-card'))
