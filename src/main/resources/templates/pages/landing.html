@@ -28,7 +28,7 @@
     <section>
         <div class="row-between">
             <h2 th:if="${!isRichiedente}">Vicini a te</h2>
-            <h2 th:if="${isRichiedente}">I tuoi lavori pubblicati</h2>
+            <h2 th:if="${isRichiedente}">I tuoi lavori</h2>
             <a class="link" th:if="${!isRichiedente}" th:href="@{/lavori}">Vedi tutti</a>
             <a class="link" th:if="${isRichiedente}" th:href="@{/dashboard/richiedente/lavori}">Vedi tutti</a>
         </div>
