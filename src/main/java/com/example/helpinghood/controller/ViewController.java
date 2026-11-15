@@ -86,9 +86,14 @@ public class ViewController {
     }
 
     @GetMapping("/home")
-    public String landing(Model model) {
+    public String landing(Model model, Authentication authentication) {
         model.addAttribute("categories", demoDataService.categories());
-        model.addAttribute("nearbyJobs", demoDataService.jobs().stream().limit(3).toList());
+        Utente utente = getAuthenticatedUser(authentication);
+        if (utente != null && "richiedente".equalsIgnoreCase(utente.getRuolo())) {
+            model.addAttribute("createdJobs", annuncioService.findByRichiedente(utente.getId()));
+        } else {
+            model.addAttribute("nearbyJobs", demoDataService.jobs().stream().limit(3).toList());
+        }
         return "pages/landing";
     }
 
