@@ -91,6 +91,8 @@ public class ViewController {
         Utente utente = getAuthenticatedUser(authentication);
         if (utente != null && "richiedente".equalsIgnoreCase(utente.getRuolo())) {
             model.addAttribute("createdJobs", annuncioService.findByRichiedente(utente.getId()));
+        } else if (utente != null && "giovane".equalsIgnoreCase(utente.getRuolo())) {
+            model.addAttribute("nearbyJobs", demoDataService.jobsForYoung(utente.getId()).stream().limit(3).toList());
         } else {
             model.addAttribute("nearbyJobs", demoDataService.jobs().stream().limit(3).toList());
         }
@@ -179,7 +181,9 @@ public class ViewController {
                     .collect(Collectors.toSet());
         }
 
-        model.addAttribute("jobs", demoDataService.jobs());
+        model.addAttribute("jobs", isGiovane
+                ? demoDataService.jobsForYoung(utente.getId())
+                : demoDataService.jobs());
         model.addAttribute("categories", demoDataService.categories());
         model.addAttribute("isGiovaneViewer", isGiovane);
         model.addAttribute("myRequestedJobIds", myRequestedJobIds);

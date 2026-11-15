@@ -60,6 +60,18 @@ public class DemoDataService {
     }
 
     public List<Job> jobs() {
+        return jobsAt(baseLat, baseLon);
+    }
+
+    public List<Job> jobsForYoung(long giovaneUtenteId) {
+        if (jdbcClient == null) {
+            return jobs();
+        }
+        UserLocation youngLocation = youngLocation(giovaneUtenteId);
+        return jobsAt(youngLocation.lat(), youngLocation.lon());
+    }
+
+    private List<Job> jobsAt(Double fromLat, Double fromLon) {
         if (jdbcClient == null) {
             return List.of();
         }
@@ -98,7 +110,7 @@ public class DemoDataService {
                             rs.getString("descrizione"),
                             rs.getString("categoria_nome"),
                             zone(rs.getString("citta"), rs.getString("luogo_note")),
-                            distanceKm(lat, lon),
+                            distanceKm(fromLat, fromLon, lat, lon),
                             lat,
                             lon,
                             rs.getBigDecimal("durata_ore") != null ? rs.getBigDecimal("durata_ore").doubleValue() : 0,
@@ -557,8 +569,9 @@ public class DemoDataService {
 
     public List<NearbyYoungJob> nearbyJobsForYoung(long giovaneUtenteId, int limit) {
         int boundedLimit = Math.max(1, limit);
+        UserLocation youngLocation = youngLocation(giovaneUtenteId);
 
-        List<NearbyYoungJob> fallback = jobs().stream()
+        List<NearbyYoungJob> fallback = jobsForYoung(giovaneUtenteId).stream()
                 .sorted(Comparator.comparingDouble(Job::distanceKm)
                         .thenComparing((job) -> job.day() != null ? job.day() : LocalDate.MAX)
                         .thenComparing((job) -> job.time() != null ? job.time() : LocalTime.MAX))
@@ -599,9 +612,7 @@ public class DemoDataService {
                         ORDER BY FIELD(a.stato, 'attivo', 'prenotato', 'in_corso', 'completato'),
                                  a.data_inizio ASC,
                                  a.ora_inizio ASC
-                        LIMIT ?
                         """)
-                .param(boundedLimit)
                 .query((rs, rowNum) -> {
                     Number latNum = (Number) rs.getObject("latitudine");
                     Number lonNum = (Number) rs.getObject("longitudine");
@@ -612,14 +623,20 @@ public class DemoDataService {
                             rs.getString("titolo"),
                             rs.getString("categoria_nome") != null ? rs.getString("categoria_nome") : "Altro",
                             zone(rs.getString("citta"), rs.getString("luogo_note")),
-                            distanceKm(lat, lon),
+                            distanceKm(youngLocation.lat(), youngLocation.lon(), lat, lon),
                             rs.getObject("data_inizio", LocalDate.class),
                             rs.getObject("ora_inizio", LocalTime.class),
                             rs.getBoolean("urgente"),
                             rs.getString("stato")
                     );
                 })
-                .list(), fallback);
+                .list()
+                .stream()
+                .sorted(Comparator.comparingDouble(NearbyYoungJob::distanceKm)
+                        .thenComparing((job) -> job.day() != null ? job.day() : LocalDate.MAX)
+                        .thenComparing((job) -> job.time() != null ? job.time() : LocalTime.MAX))
+                .limit(boundedLimit)
+                .toList(), fallback);
     }
 
     public List<YoungApplication> youngApplications(long giovaneUtenteId) {
@@ -846,6 +863,31 @@ public class DemoDataService {
         );
     }
 
+    private UserLocation youngLocation(long giovaneUtenteId) {
+        if (jdbcClient == null) {
+            return new UserLocation("", baseLat, baseLon);
+        }
+
+        Map<String, Object> young = safe(() -> jdbcClient.sql("""
+                        SELECT COALESCE(citta, '') AS citta,
+                               latitudine,
+                               longitudine
+                        FROM utenti
+                        WHERE id = ? AND ruolo = 'giovane'
+                        """)
+                .param(giovaneUtenteId)
+                .query()
+                .singleRow(), Map.of());
+
+        Number latNum = (Number) young.get("latitudine");
+        Number lonNum = (Number) young.get("longitudine");
+        return new UserLocation(
+                String.valueOf(young.getOrDefault("citta", "")),
+                latNum != null ? latNum.doubleValue() : null,
+                lonNum != null ? lonNum.doubleValue() : null
+        );
+    }
+
     private List<String> parseSkills(String rawSkills) {
         if (rawSkills == null || rawSkills.isBlank()) {
             return List.of("Disponibile");
@@ -977,5 +1019,8 @@ public class DemoDataService {
     }
 
     private record RequesterBase(String city, Double lat, Double lon) {
+    }
+
+    private record UserLocation(String city, Double lat, Double lon) {
     }
 }
