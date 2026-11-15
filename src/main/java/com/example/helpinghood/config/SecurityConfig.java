@@ -65,7 +65,12 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/auth?logout=true")
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            response.setStatus(HttpStatus.SEE_OTHER.value());
+                            response.setHeader("Location", response.encodeRedirectURL(
+                                    request.getContextPath() + "/auth?logout=true"
+                            ));
+                        })
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID")
