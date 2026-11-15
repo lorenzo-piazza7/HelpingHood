@@ -3,11 +3,13 @@ package com.example.helpinghood.controller.auth;
 import com.example.helpinghood.service.auth.RegistrationService;
 import org.springframework.security.core.Authentication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
@@ -43,7 +45,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String register(@RequestParam String nome,
+    public Object register(@RequestParam String nome,
                            @RequestParam String cognome,
                            @RequestParam String email,
                            @RequestParam String password,
@@ -88,7 +90,9 @@ public class AuthController {
         }
 
         redirectAttributes.addFlashAttribute("successMessage", result.message());
-        return "redirect:/auth";
+        RedirectView redirect = new RedirectView("/auth");
+        redirect.setStatusCode(HttpStatus.SEE_OTHER);
+        return redirect;
     }
 
     private void populateBirthDateRange(Model model) {

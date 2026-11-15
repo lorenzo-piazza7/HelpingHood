@@ -2,6 +2,7 @@ package com.example.helpinghood.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -54,7 +55,10 @@ public class SecurityConfig {
                                     .anyMatch(authority -> "ROLE_RICHIEDENTE".equals(authority.getAuthority()))) {
                                 targetUrl = "/dashboard/richiedente";
                             }
-                            response.sendRedirect(request.getContextPath() + targetUrl);
+                            response.setStatus(HttpStatus.SEE_OTHER.value());
+                            response.setHeader("Location", response.encodeRedirectURL(
+                                    request.getContextPath() + targetUrl
+                            ));
                         })
                         .failureUrl("/auth?error=true")
                         .permitAll()
