@@ -29,6 +29,7 @@
                        th:min="${minDataNascita}"
                        th:max="${maxDataNascita}"
                        required>
+                <small class="field-help">Per i giovani è richiesto avere tra 14 e 25 anni.</small>
             </label>
             <label>Citta
                 <input type="text" name="citta" th:value="${citta}" required>
@@ -47,7 +48,7 @@
 
             <p class="form-section-title full">Ruolo e contatti</p>
             <label class="full">Ruolo
-                <select name="ruolo" required>
+                <select id="registration-role" name="ruolo" required>
                     <option value="giovane" th:selected="${ruolo == null || ruolo == 'giovane'}">Giovane</option>
                     <option value="richiedente" th:selected="${ruolo == 'richiedente'}">Richiedente</option>
                 </select>

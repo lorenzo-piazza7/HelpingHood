@@ -99,6 +99,8 @@ public class DemoDataService {
                             rs.getString("categoria_nome"),
                             zone(rs.getString("citta"), rs.getString("luogo_note")),
                             distanceKm(lat, lon),
+                            lat,
+                            lon,
                             rs.getBigDecimal("durata_ore") != null ? rs.getBigDecimal("durata_ore").doubleValue() : 0,
                             rs.getObject("data_inizio", LocalDate.class),
                             rs.getObject("ora_inizio", LocalTime.class),
@@ -150,6 +152,8 @@ public class DemoDataService {
                             rs.getString("categoria_nome"),
                             zone(rs.getString("citta"), rs.getString("luogo_note")),
                             distanceKm(lat, lon),
+                            lat,
+                            lon,
                             rs.getBigDecimal("durata_ore") != null ? rs.getBigDecimal("durata_ore").doubleValue() : 0,
                             rs.getObject("data_inizio", LocalDate.class),
                             rs.getObject("ora_inizio", LocalTime.class),
@@ -483,6 +487,7 @@ public class DemoDataService {
                         JOIN annunci a ON a.id = c.annuncio_id
                         JOIN utenti g ON g.id = c.giovane_utente_id
                         WHERE a.richiedente_id = ?
+                          AND a.stato IN ('attivo', 'in_corso')
                           AND c.stato IN ('inviata', 'vista', 'accettata')
                         ORDER BY c.data_candidatura DESC
                         LIMIT ?
@@ -765,6 +770,8 @@ public class DemoDataService {
                 "Altro",
                 "Lecco",
                 0,
+                baseLat,
+                baseLon,
                 0,
                 LocalDate.now(),
                 LocalTime.NOON,
@@ -867,6 +874,8 @@ public class DemoDataService {
                       String category,
                       String zone,
                       double distanceKm,
+                      Double latitude,
+                      Double longitude,
                       double durationHours,
                       LocalDate day,
                       LocalTime time,

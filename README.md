@@ -77,6 +77,19 @@ Il sistema monitora i guadagni in tempo reale. Superati i €4.900 netti annui, 
 - **Curriculum digitale progressivo** — profilo professionale esportabile generato dall'esperienza concreta
 - **Assistente AI integrato** — agente intelligente per supportare onboarding, matching e comunicazione tra utenti
 
+## 🗺️ Mappa dei lavori
+
+La pagina `/lavori` include una mappa interattiva basata su Leaflet e OpenStreetMap. Gli annunci con coordinate salvate vengono mostrati come marker; nella pagina di creazione/modifica è possibile cercare città/indirizzo oppure selezionare manualmente un punto sulla mappa.
+
+OpenStreetMap non fornisce una propria chiave API per i tile. In sviluppo viene usato il tile endpoint pubblico; in produzione è consigliato configurare un provider compatibile e autorizzato tramite:
+
+```properties
+MAP_TILE_URL=https://{s}.provider.example/{z}/{x}/{y}.png?key=...
+MAP_ATTRIBUTION=Attribuzione richiesta dal provider
+```
+
+Le variabili vengono lette da `app.maps.tile-url` e `app.maps.attribution`. Il geocoding usa Nominatim con richieste esplicite dell'utente; per carichi elevati va usato un servizio di geocoding dedicato nel rispetto dei relativi limiti.
+
 ---
 
 ## 👥 Il Team

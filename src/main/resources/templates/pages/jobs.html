@@ -27,6 +27,20 @@
         <button type="button" class="btn btn-sm" id="clear-filters">Reset filtri</button>
     </section>
 
+    <section class="card map-card">
+        <div class="row-between">
+            <div>
+                <h2>Mappa dei lavori</h2>
+                <p class="map-help">Visualizza gli annunci con una posizione disponibile.</p>
+            </div>
+            <span class="pill">OpenStreetMap</span>
+        </div>
+        <div id="jobs-map"
+             class="jobs-map"
+             th:attr="data-tile-url=${mapTileUrl},data-attribution=${mapAttribution}"></div>
+        <p class="map-empty" id="jobs-map-empty" hidden>Nessun lavoro ha ancora una posizione geolocalizzata.</p>
+    </section>
+
     <!-- Risultati annunci con azioni diverse in base al ruolo autenticato. -->
     <section class="grid cards-2" id="jobs-list">
         <article class="card job-card" th:each="job : ${jobs}"
@@ -34,7 +48,9 @@
                  th:attr="data-category=${job.category != null ? job.category : ''},
                           data-distance=${job.distanceKm},
                           data-time=${job.time != null ? #temporals.format(job.time, 'HH:mm') : ''},
-                          data-pay=${job.hourlyCompensation != null ? job.hourlyCompensation : 0}">
+                          data-pay=${job.hourlyCompensation != null ? job.hourlyCompensation : 0},
+                          data-latitude=${job.latitude},
+                          data-longitude=${job.longitude}">
             <div class="row-between">
                 <span class="pill" th:text="${job.category}"></span>
                 <div class="row-gap">

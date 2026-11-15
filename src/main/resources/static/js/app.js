@@ -1,4 +1,121 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const defaultCenter = [45.8565, 9.3967];
+
+    const mapOptions = (element) => ({
+        tileUrl: element.dataset.tileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        attribution: element.dataset.attribution || '© OpenStreetMap contributors'
+    });
+
+    const addBaseLayer = (map, element) => {
+        const options = mapOptions(element);
+        L.tileLayer(options.tileUrl, {
+            attribution: options.attribution,
+            maxZoom: 19
+        }).addTo(map);
+    };
+
+    const validCoordinate = (value, min, max) => {
+        const number = Number(value);
+        return Number.isFinite(number) && number >= min && number <= max;
+    };
+
+    const jobsMap = document.getElementById('jobs-map');
+    if (jobsMap && window.L) {
+        const markers = Array.from(document.querySelectorAll('.job-card'))
+            .map(card => ({
+                latitude: card.dataset.latitude,
+                longitude: card.dataset.longitude,
+                title: card.querySelector('h3')?.textContent || 'Lavoro',
+                id: card.querySelector('a[href*="/lavori/"]')?.href
+            }))
+            .filter(job => validCoordinate(job.latitude, -90, 90) && validCoordinate(job.longitude, -180, 180));
+
+        if (markers.length) {
+            const map = L.map(jobsMap).setView([Number(markers[0].latitude), Number(markers[0].longitude)], 13);
+            addBaseLayer(map, jobsMap);
+            const bounds = [];
+            markers.forEach(job => {
+                const point = [Number(job.latitude), Number(job.longitude)];
+                bounds.push(point);
+                L.marker(point).addTo(map).bindPopup(
+                    `<strong>${escapeHtml(job.title)}</strong><br><a href="${job.id}">Apri dettaglio</a>`
+                );
+            });
+            if (bounds.length > 1) map.fitBounds(bounds, { padding: [24, 24] });
+        } else {
+            jobsMap.hidden = true;
+            document.getElementById('jobs-map-empty')?.removeAttribute('hidden');
+        }
+    }
+
+    const detailMap = document.getElementById('job-detail-map');
+    if (detailMap && window.L) {
+        const latitude = Number(detailMap.dataset.latitude);
+        const longitude = Number(detailMap.dataset.longitude);
+        const map = L.map(detailMap).setView([latitude, longitude], 15);
+        addBaseLayer(map, detailMap);
+        L.marker([latitude, longitude]).addTo(map).bindPopup(escapeHtml(detailMap.dataset.title || 'Lavoro')).openPopup();
+    }
+
+    const picker = document.getElementById('job-picker-map');
+    const latitudeInput = document.getElementById('job-latitude');
+    const longitudeInput = document.getElementById('job-longitude');
+    const locationStatus = document.getElementById('job-location-status');
+    if (picker && window.L && latitudeInput && longitudeInput) {
+        const hasCoordinates = validCoordinate(latitudeInput.value, -90, 90)
+            && validCoordinate(longitudeInput.value, -180, 180);
+        const initialPoint = hasCoordinates
+            ? [Number(latitudeInput.value), Number(longitudeInput.value)]
+            : defaultCenter;
+        const map = L.map(picker).setView(initialPoint, hasCoordinates ? 16 : 12);
+        addBaseLayer(map, picker);
+        let marker = hasCoordinates ? L.marker(initialPoint).addTo(map) : null;
+
+        const setPoint = (latitude, longitude) => {
+            latitudeInput.value = latitude.toFixed(7);
+            longitudeInput.value = longitude.toFixed(7);
+            marker?.remove();
+            marker = L.marker([latitude, longitude]).addTo(map);
+            locationStatus.textContent = 'Posizione selezionata.';
+        };
+        map.on('click', event => setPoint(event.latlng.lat, event.latlng.lng));
+
+        document.getElementById('find-job-location')?.addEventListener('click', async () => {
+            const city = document.querySelector('[name="citta"]')?.value?.trim();
+            const address = document.querySelector('[name="indirizzo"]')?.value?.trim();
+            const query = [address, city].filter(Boolean).join(', ');
+            if (!query) {
+                locationStatus.textContent = 'Inserisci almeno città o indirizzo.';
+                return;
+            }
+            locationStatus.textContent = 'Ricerca posizione in corso...';
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`, {
+                    headers: { Accept: 'application/json' }
+                });
+                if (!response.ok) throw new Error('Geocoding failed');
+                const results = await response.json();
+                if (!results.length) {
+                    locationStatus.textContent = 'Posizione non trovata. Puoi selezionarla cliccando sulla mappa.';
+                    return;
+                }
+                const result = results[0];
+                const latitude = Number(result.lat);
+                const longitude = Number(result.lon);
+                map.setView([latitude, longitude], 16);
+                setPoint(latitude, longitude);
+            } catch (error) {
+                locationStatus.textContent = 'Impossibile cercare la posizione. Selezionala manualmente sulla mappa.';
+            }
+        });
+    }
+
+    function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, character => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+        }[character]));
+    }
+
     // Filtri per la lista lavori: ogni card resta visibile solo se rispetta tutti i criteri.
     const category = document.getElementById('filter-category');
     const distance = document.getElementById('filter-distance');

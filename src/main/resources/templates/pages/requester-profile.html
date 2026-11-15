@@ -73,7 +73,11 @@
                         <label class="full">Tipo profilo
                             <select name="tipo" required>
                                 <option value="privato" th:selected="${profilo.tipo == null || profilo.tipo == 'privato'}">Privato</option>
-                                <option value="organizzazione" th:selected="${profilo.tipo == 'organizzazione'}">Organizzazione</option>
+                                <option value="famiglia" th:selected="${profilo.tipo == 'famiglia'}">Famiglia</option>
+                                <option value="anziano" th:selected="${profilo.tipo == 'anziano'}">Anziano</option>
+                                <option value="ente_pubblico" th:selected="${profilo.tipo == 'ente_pubblico'}">Ente pubblico</option>
+                                <option value="associazione" th:selected="${profilo.tipo == 'associazione'}">Associazione</option>
+                                <option value="piccola_impresa" th:selected="${profilo.tipo == 'piccola_impresa'}">Piccola impresa</option>
                             </select>
                         </label>
                         <label class="full">Nome organizzazione (opzionale)
