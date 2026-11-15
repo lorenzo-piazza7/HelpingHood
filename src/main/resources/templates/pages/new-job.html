@@ -34,6 +34,27 @@
             <label class="full">Note luogo
                 <input name="luogoNote" type="text" placeholder="Es. citofono Bianchi, terzo piano" maxlength="200" th:value="${luogoNote}">
             </label>
+            <div class="full location-picker">
+                <div class="row-between">
+                    <div>
+                        <h3>Posizione sulla mappa</h3>
+                        <p class="map-help">Cerca l'indirizzo e salva le coordinate. OpenStreetMap non richiede una chiave API.</p>
+                    </div>
+                    <button type="button" class="btn btn-light btn-sm" id="find-job-location">Trova posizione</button>
+                </div>
+                <div id="job-picker-map"
+                     class="jobs-map jobs-map-picker"
+                     th:attr="data-latitude=${latitudine},data-longitude=${longitudine},data-tile-url=${mapTileUrl},data-attribution=${mapAttribution}"></div>
+                <div class="coordinates-grid">
+                    <label>Latitudine
+                        <input id="job-latitude" name="latitudine" type="number" step="any" min="-90" max="90" th:value="${latitudine}">
+                    </label>
+                    <label>Longitudine
+                        <input id="job-longitude" name="longitudine" type="number" step="any" min="-180" max="180" th:value="${longitudine}">
+                    </label>
+                </div>
+                <p class="map-status" id="job-location-status" role="status"></p>
+            </div>
             <label>Durata (ore)
                 <input name="durataOre" type="number" min="0.5" step="0.5" placeholder="2" th:value="${durataOre}">
             </label>

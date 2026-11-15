@@ -22,6 +22,8 @@ import com.example.helpinghood.service.ProfiloRichiedenteService;
 import com.example.helpinghood.service.RecensioneService;
 import com.example.helpinghood.service.UtenteService;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -202,7 +204,9 @@ public class ViewController {
 
         boolean alreadyRequested = false;
         if (isGiovane) {
-            alreadyRequested = candidaturaService.findByAnnuncioAndGiovane(annuncio.getId(), utente.getId()).isPresent();
+            alreadyRequested = candidaturaService.findByAnnuncioAndGiovane(annuncio.getId(), utente.getId())
+                    .map(this::isActiveApplication)
+                    .orElse(false);
         }
 
         model.addAttribute("annuncio", annuncio);
@@ -210,6 +214,8 @@ public class ViewController {
         model.addAttribute("richiedenteNome", richiedenteNome);
         model.addAttribute("isGiovaneViewer", isGiovane);
         model.addAttribute("jobAlreadyRequested", alreadyRequested);
+        model.addAttribute("mapLatitude", annuncio.getLatitudine());
+        model.addAttribute("mapLongitude", annuncio.getLongitudine());
         return "pages/job-detail";
     }
 
@@ -237,7 +243,9 @@ public class ViewController {
             return "redirect:/lavori/" + id;
         }
 
-        if (candidaturaService.findByAnnuncioAndGiovane(id, utente.getId()).isPresent()) {
+        if (candidaturaService.findByAnnuncioAndGiovane(id, utente.getId())
+                .filter(this::isActiveApplication)
+                .isPresent()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Hai gia richiesto questo lavoro.");
             return "redirect:/lavori/" + id;
         }
@@ -293,7 +301,8 @@ public class ViewController {
             return "redirect:/home";
         }
 
-        Optional<Candidatura> candidaturaOptional = candidaturaService.findByAnnuncioAndGiovane(id, utente.getId());
+        Optional<Candidatura> candidaturaOptional = candidaturaService.findByAnnuncioAndGiovane(id, utente.getId())
+                .filter(this::isActiveApplication);
         if (candidaturaOptional.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Nessuna richiesta attiva da annullare.");
             return "redirect:/lavori";
@@ -325,7 +334,11 @@ public class ViewController {
     }
 
     @GetMapping("/profili/giovani/{id}")
-    public String youngProfile(@PathVariable long id, Model model) {
+    public String youngProfile(@PathVariable long id, Model model, RedirectAttributes redirectAttributes) {
+        if (demoDataService.youngProfiles().stream().noneMatch(profile -> profile.id() == id)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Profilo giovane non trovato.");
+            return "redirect:/giovani";
+        }
         model.addAttribute("profile", demoDataService.youngProfileById(id));
         model.addAttribute("reviews", loadReviewCardsForTarget(id));
         return "pages/young-profile-public";
@@ -405,13 +418,13 @@ public class ViewController {
         }
 
         Candidatura candidatura = candidaturaService.findByAnnuncioAndGiovane(jobId, youngId).orElse(null);
-        if (candidatura == null) {
+        if (candidatura == null || !isActiveApplication(candidatura)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Nessun giovane attivo trovato su questo lavoro.");
             return "redirect:/dashboard/richiedente/giovani/" + youngId + "/dettagli?jobId=" + jobId;
         }
 
-        if (rating < 0 || rating > 5) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Il rating deve essere compreso tra 0 e 5.");
+        if (rating < 1 || rating > 5) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Il rating deve essere compreso tra 1 e 5.");
             return "redirect:/dashboard/richiedente/giovani/" + youngId + "/dettagli?jobId=" + jobId;
         }
 
@@ -453,12 +466,16 @@ public class ViewController {
         }
 
         Candidatura candidatura = candidaturaService.findByAnnuncioAndGiovane(jobId, youngId).orElse(null);
-        if (candidatura == null) {
+        if (candidatura == null || !isActiveApplication(candidatura)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Il giovane non e piu attivo su questo lavoro.");
             return "redirect:/dashboard/richiedente";
         }
 
         Lavoro lavoro = ensureLavoroRecord(candidatura, annuncio, utente.getId(), youngId);
+        if ("completato".equalsIgnoreCase(lavoro.getStato())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Questo lavoro è già stato completato.");
+            return "redirect:/dashboard/richiedente";
+        }
         // Chiusura lavoro: aggiorniamo timeline e stato definitivo.
         lavoro.setStato("completato");
         if (lavoro.getDataInizioEff() == null) {
@@ -473,8 +490,10 @@ public class ViewController {
         annuncio.setNCandidature(Math.max(0, candidatureCount - 1));
         annuncioService.save(annuncio);
 
-        // Dopo il completamento non serve mantenere candidatura e chat operativa.
-        candidaturaService.delete(candidatura);
+        // Conserviamo la candidatura: lavori.candidatura_id ha una FK ON DELETE CASCADE
+        // e cancellarla eliminerebbe anche lo storico del lavoro.
+        candidatura.setDataRisposta(LocalDateTime.now());
+        candidaturaService.save(candidatura);
 
         conversazioneRepository.findByAnnuncioIdAndParticipants(jobId, youngId, utente.getId()).ifPresent(conversazione -> {
             messaggioRepository.deleteByConversazioneId(conversazione.getId());
@@ -517,6 +536,7 @@ public class ViewController {
     }
 
     @PostMapping("/profilo/richiedente")
+    @Transactional
     public String updateRequesterPrivateProfile(@RequestParam String nome,
                                                 @RequestParam String cognome,
                                                 @RequestParam String email,
@@ -555,9 +575,24 @@ public class ViewController {
             return "pages/requester-profile";
         }
 
+        String normalizedType = tipo.trim().toLowerCase();
+        if (!Set.of("privato", "famiglia", "anziano", "ente_pubblico", "associazione", "piccola_impresa")
+                .contains(normalizedType)) {
+            model.addAttribute("errorMessage", "Tipo di profilo non valido.");
+            bindRequesterProfileModel(model, utente, profilo);
+            populateBirthDateRange(model);
+            return "pages/requester-profile";
+        }
+
         LocalDate birthDate = parseDate(dataNascita);
         if (!isBlank(dataNascita) && birthDate == null) {
             model.addAttribute("errorMessage", "Data di nascita non valida.");
+            bindRequesterProfileModel(model, utente, profilo);
+            populateBirthDateRange(model);
+            return "pages/requester-profile";
+        }
+        if (birthDate != null && birthDate.isAfter(LocalDate.now())) {
+            model.addAttribute("errorMessage", "La data di nascita non puo essere futura.");
             bindRequesterProfileModel(model, utente, profilo);
             populateBirthDateRange(model);
             return "pages/requester-profile";
@@ -582,12 +617,13 @@ public class ViewController {
         utente.setBio(isBlank(bio) ? null : bio.trim());
 
         profilo.setUtenteId(utente.getId());
-        profilo.setTipo(tipo.trim().toLowerCase());
+        profilo.setTipo(normalizedType);
         profilo.setNomeOrg(isBlank(nomeOrg) ? null : nomeOrg.trim());
         profilo.setSitoWeb(isBlank(sitoWeb) ? null : sitoWeb.trim());
 
         utenteService.save(utente);
         profiloRichiedenteService.save(profilo);
+        refreshAuthenticationName(authentication, normalizedEmail);
 
         redirectAttributes.addFlashAttribute("successMessage", "Profilo richiedente aggiornato con successo.");
         return "redirect:/profilo/richiedente";
@@ -620,6 +656,7 @@ public class ViewController {
     }
 
     @PostMapping("/profilo/giovane")
+    @Transactional
     public String updateYoungPrivateProfile(@RequestParam String nome,
                                             @RequestParam String cognome,
                                             @RequestParam String email,
@@ -674,10 +711,16 @@ public class ViewController {
             populateBirthDateRange(model);
             return "pages/young-profile";
         }
+        if (birthDate.isAfter(LocalDate.now())) {
+            model.addAttribute("errorMessage", "La data di nascita non puo essere futura.");
+            bindYoungProfileModel(model, utente, profilo);
+            populateBirthDateRange(model);
+            return "pages/young-profile";
+        }
 
         int eta = Period.between(birthDate, LocalDate.now()).getYears();
         // Doppio controllo: eta ricavata dalla data + campo anni compilato nel profilo.
-        if (eta < 14 || eta > 25 || anni < 14 || anni > 25) {
+        if (anni == null || anni < 14 || anni > 25 || eta < 14 || eta > 25) {
             model.addAttribute("errorMessage", "Eta consentita tra 14 e 25 anni.");
             bindYoungProfileModel(model, utente, profilo);
             populateBirthDateRange(model);
@@ -687,6 +730,14 @@ public class ViewController {
         String normalizedEmail = email.trim().toLowerCase();
         if (!normalizedEmail.equalsIgnoreCase(utente.getEmail()) && utenteService.existsByEmail(normalizedEmail)) {
             model.addAttribute("errorMessage", "Email gia in uso.");
+            bindYoungProfileModel(model, utente, profilo);
+            populateBirthDateRange(model);
+            return "pages/young-profile";
+        }
+
+        if (raggioKm == null || raggioKm < 1 || raggioKm > 100
+                || oreSettimanaMax == null || oreSettimanaMax < 1 || oreSettimanaMax > 80) {
+            model.addAttribute("errorMessage", "Raggio e ore settimanali devono essere valori validi.");
             bindYoungProfileModel(model, utente, profilo);
             populateBirthDateRange(model);
             return "pages/young-profile";
@@ -726,6 +777,7 @@ public class ViewController {
 
         utenteService.save(utente);
         profiloGiovaneService.save(profilo);
+        refreshAuthenticationName(authentication, normalizedEmail);
 
         redirectAttributes.addFlashAttribute("successMessage", "Profilo aggiornato con successo.");
         return "redirect:/profilo/giovane";
@@ -752,6 +804,8 @@ public class ViewController {
                             @RequestParam String citta,
                             @RequestParam(required = false) String indirizzo,
                             @RequestParam(required = false) String luogoNote,
+                            @RequestParam(required = false) String latitudine,
+                            @RequestParam(required = false) String longitudine,
                             @RequestParam(required = false) String dataInizio,
                             @RequestParam(required = false) String oraInizio,
                             @RequestParam(required = false) String durataOre,
@@ -773,6 +827,8 @@ public class ViewController {
         BigDecimal durata = parseBigDecimal(durataOre);
         LocalDate giorno = parseDate(dataInizio);
         LocalTime orario = parseTime(oraInizio);
+        BigDecimal latitude = parseBigDecimal(latitudine);
+        BigDecimal longitude = parseBigDecimal(longitudine);
 
         if (compenso == null || compenso.compareTo(BigDecimal.valueOf(5)) < 0) {
             errors.add("Il compenso minimo per ogni lavoro e di 5 EUR.");
@@ -786,11 +842,21 @@ public class ViewController {
         if (oraInizio != null && !oraInizio.isBlank() && orario == null) {
             errors.add("Orario non valido.");
         }
+        validateDecimalInput(errors, latitudine, latitude, "Latitudine");
+        validateDecimalInput(errors, longitudine, longitude, "Longitudine");
+        if (durata != null && durata.compareTo(BigDecimal.ZERO) <= 0) {
+            errors.add("La durata deve essere maggiore di zero.");
+        }
+        if (categoriaId == null || categoriaService.findAll().stream()
+                .noneMatch(categoria -> categoria.getId().equals(categoriaId))) {
+            errors.add("Categoria non valida.");
+        }
+        validateCoordinates(errors, latitude, longitude);
 
         if (!errors.isEmpty()) {
             bindNewJobDefaults(model);
             bindJobFormValues(model, titolo, categoriaId, descrizione, citta, indirizzo, luogoNote,
-                    dataInizio, oraInizio, durataOre, compensoImporto, urgente);
+                    dataInizio, oraInizio, durataOre, compensoImporto, latitudine, longitudine, urgente);
             model.addAttribute("errorMessage", String.join(" ", errors));
             return "pages/new-job";
         }
@@ -803,6 +869,8 @@ public class ViewController {
         annuncio.setCitta(citta.trim());
         annuncio.setIndirizzo(isBlank(indirizzo) ? null : indirizzo.trim());
         annuncio.setLuogoNote(isBlank(luogoNote) ? null : luogoNote.trim());
+        annuncio.setLatitudine(latitude);
+        annuncio.setLongitudine(longitude);
         annuncio.setDataInizio(giorno);
         annuncio.setOraInizio(orario);
         annuncio.setDurataOre(durata);
@@ -854,6 +922,8 @@ public class ViewController {
                 annuncio.getOraInizio() != null ? annuncio.getOraInizio().toString() : "",
                 annuncio.getDurataOre() != null ? annuncio.getDurataOre().toPlainString() : "",
                 annuncio.getCompensoImporto() != null ? annuncio.getCompensoImporto().toPlainString() : "",
+                annuncio.getLatitudine() != null ? annuncio.getLatitudine().toPlainString() : "",
+                annuncio.getLongitudine() != null ? annuncio.getLongitudine().toPlainString() : "",
                 annuncio.isUrgente());
         return "pages/new-job";
     }
@@ -866,6 +936,8 @@ public class ViewController {
                             @RequestParam String citta,
                             @RequestParam(required = false) String indirizzo,
                             @RequestParam(required = false) String luogoNote,
+                            @RequestParam(required = false) String latitudine,
+                            @RequestParam(required = false) String longitudine,
                             @RequestParam(required = false) String dataInizio,
                             @RequestParam(required = false) String oraInizio,
                             @RequestParam(required = false) String durataOre,
@@ -893,6 +965,8 @@ public class ViewController {
         BigDecimal durata = parseBigDecimal(durataOre);
         LocalDate giorno = parseDate(dataInizio);
         LocalTime orario = parseTime(oraInizio);
+        BigDecimal latitude = parseBigDecimal(latitudine);
+        BigDecimal longitude = parseBigDecimal(longitudine);
 
         if (compenso == null || compenso.compareTo(BigDecimal.valueOf(5)) < 0) {
             errors.add("Il compenso minimo per ogni lavoro e di 5 EUR.");
@@ -906,6 +980,16 @@ public class ViewController {
         if (oraInizio != null && !oraInizio.isBlank() && orario == null) {
             errors.add("Orario non valido.");
         }
+        validateDecimalInput(errors, latitudine, latitude, "Latitudine");
+        validateDecimalInput(errors, longitudine, longitude, "Longitudine");
+        if (durata != null && durata.compareTo(BigDecimal.ZERO) <= 0) {
+            errors.add("La durata deve essere maggiore di zero.");
+        }
+        if (categoriaId == null || categoriaService.findAll().stream()
+                .noneMatch(categoria -> categoria.getId().equals(categoriaId))) {
+            errors.add("Categoria non valida.");
+        }
+        validateCoordinates(errors, latitude, longitude);
 
         if (!errors.isEmpty()) {
             bindNewJobDefaults(model);
@@ -913,7 +997,7 @@ public class ViewController {
             model.addAttribute("formAction", "/annunci/" + id + "/modifica");
             model.addAttribute("jobId", id);
             bindJobFormValues(model, titolo, categoriaId, descrizione, citta, indirizzo, luogoNote,
-                    dataInizio, oraInizio, durataOre, compensoImporto, urgente);
+                    dataInizio, oraInizio, durataOre, compensoImporto, latitudine, longitudine, urgente);
             model.addAttribute("errorMessage", String.join(" ", errors));
             return "pages/new-job";
         }
@@ -924,6 +1008,8 @@ public class ViewController {
         annuncio.setCitta(citta.trim());
         annuncio.setIndirizzo(isBlank(indirizzo) ? null : indirizzo.trim());
         annuncio.setLuogoNote(isBlank(luogoNote) ? null : luogoNote.trim());
+        annuncio.setLatitudine(latitude);
+        annuncio.setLongitudine(longitude);
         annuncio.setDataInizio(giorno);
         annuncio.setOraInizio(orario);
         annuncio.setDurataOre(durata);
@@ -1012,6 +1098,27 @@ public class ViewController {
             return null;
         }
         return utenteService.findActiveByEmail(authentication.getName()).orElse(null);
+    }
+
+    private boolean isActiveApplication(Candidatura candidatura) {
+        String status = candidatura.getStato();
+        return status == null
+                || "inviata".equalsIgnoreCase(status)
+                || "vista".equalsIgnoreCase(status)
+                || "accettata".equalsIgnoreCase(status);
+    }
+
+    private void refreshAuthenticationName(Authentication authentication, String email) {
+        if (authentication == null || authentication.getName().equalsIgnoreCase(email)) {
+            return;
+        }
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                            email,
+                            authentication.getCredentials(),
+                            authentication.getAuthorities()
+                )
+        );
     }
 
     private List<DemoDataService.WorkChatPreview> buildWorkChats(Utente utente) {
@@ -1146,6 +1253,8 @@ public class ViewController {
                                    String oraInizio,
                                    String durataOre,
                                    String compensoImporto,
+                                   String latitudine,
+                                   String longitudine,
                                    boolean urgente) {
         model.addAttribute("titolo", titolo);
         model.addAttribute("categoriaId", categoriaId);
@@ -1157,7 +1266,28 @@ public class ViewController {
         model.addAttribute("oraInizio", oraInizio);
         model.addAttribute("durataOre", durataOre);
         model.addAttribute("compensoImporto", compensoImporto);
+        model.addAttribute("latitudine", latitudine);
+        model.addAttribute("longitudine", longitudine);
         model.addAttribute("urgente", urgente);
+    }
+
+    private void validateCoordinates(List<String> errors, BigDecimal latitude, BigDecimal longitude) {
+        if ((latitude == null) != (longitude == null)) {
+            errors.add("Inserisci entrambe le coordinate della posizione.");
+            return;
+        }
+        if (latitude != null && (latitude.compareTo(BigDecimal.valueOf(-90)) < 0
+                || latitude.compareTo(BigDecimal.valueOf(90)) > 0
+                || longitude.compareTo(BigDecimal.valueOf(-180)) < 0
+                || longitude.compareTo(BigDecimal.valueOf(180)) > 0)) {
+            errors.add("Coordinate non valide.");
+        }
+    }
+
+    private void validateDecimalInput(List<String> errors, String rawValue, BigDecimal parsedValue, String label) {
+        if (!isBlank(rawValue) && parsedValue == null) {
+            errors.add(label + " non valida.");
+        }
     }
 
     private List<String> validateJobForm(String titolo, String descrizione, String citta, String compensoImporto) {

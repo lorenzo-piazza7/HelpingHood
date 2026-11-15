@@ -93,7 +93,7 @@ public class AuthController {
 
     private void populateBirthDateRange(Model model) {
         LocalDate today = LocalDate.now();
-        model.addAttribute("minDataNascita", today.minusYears(25));
-        model.addAttribute("maxDataNascita", today.minusYears(14));
+        model.addAttribute("minDataNascita", LocalDate.of(1900, 1, 1));
+        model.addAttribute("maxDataNascita", today);
     }
 }

@@ -50,6 +50,23 @@
             </article>
         </div>
 
+        <section class="job-map-section" th:if="${mapLatitude != null && mapLongitude != null}">
+            <div class="row-between">
+                <div>
+                    <h2>Posizione del lavoro</h2>
+                    <p class="map-help">La posizione è mostrata in modo approssimativo per tutelare la privacy.</p>
+                </div>
+                <span class="pill">Mappa</span>
+            </div>
+            <div id="job-detail-map"
+                 class="jobs-map"
+                 th:attr="data-latitude=${mapLatitude},data-longitude=${mapLongitude},data-title=${annuncio.titolo},data-tile-url=${mapTileUrl},data-attribution=${mapAttribution}"></div>
+        </section>
+        <section class="job-map-section map-empty" th:if="${mapLatitude == null || mapLongitude == null}">
+            <h2>Posizione non disponibile</h2>
+            <p>Il richiedente non ha ancora indicato una posizione sulla mappa.</p>
+        </section>
+
         <!-- CTA contestuali: candidatura e accesso rapido alle chat. -->
         <div class="row-gap">
             <form method="post" th:if="${isGiovaneViewer}" th:action="@{'/lavori/' + ${annuncio.id} + '/richiedi'}" class="inline-form">

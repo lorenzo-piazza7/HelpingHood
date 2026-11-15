@@ -54,6 +54,11 @@ public class RegistrationService {
             return new RegistrationResult(false, "La conferma password non coincide.");
         }
 
+        String role = normalizeRole(request.ruolo());
+        if (role == null) {
+            return new RegistrationResult(false, "Ruolo non valido.");
+        }
+
         LocalDate birthDate;
         try {
             birthDate = LocalDate.parse(request.dataNascita().trim());
@@ -61,22 +66,18 @@ public class RegistrationService {
             return new RegistrationResult(false, "Data di nascita non valida.");
         }
 
-        LocalDate today = LocalDate.now();
-        LocalDate minBirthDate = today.minusYears(25);
-        LocalDate maxBirthDate = today.minusYears(14);
-        // Vincolo business: la piattaforma e pensata per la fascia 14-25 anni.
-        if (birthDate.isBefore(minBirthDate) || birthDate.isAfter(maxBirthDate)) {
-            return new RegistrationResult(false, "La data di nascita deve corrispondere a un'età tra 14 e 25 anni.");
+        if (ROLE_GIOVANE.equals(role)) {
+            LocalDate today = LocalDate.now();
+            LocalDate minBirthDate = today.minusYears(25);
+            LocalDate maxBirthDate = today.minusYears(14);
+            if (birthDate.isBefore(minBirthDate) || birthDate.isAfter(maxBirthDate)) {
+                return new RegistrationResult(false, "La data di nascita del giovane deve corrispondere a un'età tra 14 e 25 anni.");
+            }
         }
 
         String normalizedEmail = request.email().trim().toLowerCase(Locale.ROOT);
         if (utenteRepository.existsByEmailIgnoreCase(normalizedEmail)) {
             return new RegistrationResult(false, "Email già registrata.");
-        }
-
-        String role = normalizeRole(request.ruolo());
-        if (role == null) {
-            return new RegistrationResult(false, "Ruolo non valido.");
         }
 
         Utente utente = new Utente();
